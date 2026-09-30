@@ -9,6 +9,7 @@ try{
  const config=await worker.fetch(new Request(base+'/api/auth-config'),env);assert.equal((await config.json()).provider,'firebase');
  const forged=await worker.fetch(new Request(base+'/api/me',{headers:{'oai-authenticated-user-id':'owner','oai-authenticated-user-email':'owner@example.test'}}),env);assert.equal((await forged.json()).signedIn,false);
  const page=await worker.fetch(new Request(base+'/'),env);assert.equal(page.status,200);assert.match(page.headers.get('content-security-policy'),/connect-src 'self' https:\/\/identitytoolkit.googleapis.com https:\/\/securetoken.googleapis.com/);
+ const html=await page.text();assert.doesNotMatch(html,/signin-with-chatgpt/);assert.match(html,/data-i18n="emailWelcome"/);
  const sdk=await worker.fetch(new Request(base+'/firebase-client.js'),env);assert.equal(sdk.status,200);assert.match(await sdk.text(),/sendEmailVerification/);
  console.log('Cloudflare bundle verified: Firebase required; forged platform headers ignored; client SDK and CSP available.');
 }finally{DB.close();}
