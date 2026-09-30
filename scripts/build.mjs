@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {build} from 'esbuild';
 import {thirdPartyNotices} from './third-party-notices.mjs';
 const cloudflare=process.argv.includes('--cloudflare'),output=cloudflare?'cloudflare-dist':'dist';
-const types={'.html':'text/html; charset=utf-8','.css':'text/css','.js':'application/javascript','.jpg':'image/jpeg','.svg':'image/svg+xml','.ttf':'font/ttf','.txt':'text/plain; charset=utf-8'};
+const types={'.html':'text/html; charset=utf-8','.css':'text/css','.js':'application/javascript','.jpg':'image/jpeg','.svg':'image/svg+xml','.ttf':'font/ttf','.woff':'font/woff','.txt':'text/plain; charset=utf-8'};
 const assets={};
 function collect(directory){for(const entry of fs.readdirSync(directory,{withFileTypes:true})){const file=path.join(directory,entry.name);if(entry.isDirectory())collect(file);else{const key='/'+path.relative('public',file).split(path.sep).join('/');assets[key]={type:types[path.extname(file)]||'application/octet-stream',content:fs.readFileSync(file).toString('base64')};}}}
 collect('public');

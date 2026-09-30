@@ -19,9 +19,14 @@ Palette: cream #E9E0D0, slate #6F8097 and terracotta #C88972 were selected from 
 user-supplied reference. No exclusive ownership of these colours or of the
 reference screenshot is claimed.
 
-Fonts: Fredoka and Comic Neue, under the SIL Open Font License 1.1.
+Fonts: Fredoka, Comic Neue and ZCOOL KuaiLe, under the SIL Open Font License 1.1.
 Their full supplied licences are in public/fonts/Fredoka-OFL.txt and
-public/fonts/ComicNeue-OFL.txt. System fonts are not redistributed.
+public/fonts/ComicNeue-OFL.txt and public/fonts/ZCOOLKuaiLe-OFL.txt.
+ZCOOL KuaiLe was obtained from google/fonts/ofl/zcoolkuaile and converted to
+WOFF for self-hosted delivery. Its OFL licence is preserved; Chinese glyphs
+use it while Latin glyphs retain the existing English fonts. The supplied
+typography reference was inspiration, not a claim to its exact font or artwork.
+System fonts are not redistributed.
 
 Software: runtime dependencies and bundled Firebase components retain their
 own licences and notices. See public/third-party-notices.txt, package-lock.json
