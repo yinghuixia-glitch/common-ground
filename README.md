@@ -4,6 +4,8 @@ A bilingual university peer-support community for students and staff across univ
 
 **Website:** https://common-ground-campus.momokoyjt.chatgpt.site
 
+**DrFrog migration:** email/password sign-in and an independent Cloudflare Pages build are prepared. Activation requires the owner's Firebase configuration and Cloudflare deployment. Follow [DEPLOY-CLOUDFLARE.md](DEPLOY-CLOUDFLARE.md). The current address/sign-in remain active during setup; a replacement address has not yet been assigned.
+
 ## Join the community
 
 1. Choose **English** or **中文** in the header.

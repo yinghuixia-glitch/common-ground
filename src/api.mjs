@@ -1,3 +1,4 @@
+import {authenticatedUser,authConfig,AuthError} from './auth.mjs';
 export const TOPICS=['Communication','Studying','Campus life','Adjustments'];
 export const GUIDE_IDS=['communication','studying','sensory','adjustments','preferences'];
 class HttpError extends Error{constructor(status,code){super(code);this.status=status;this.code=code;}}
@@ -15,8 +16,7 @@ async function body(request){
  const data=new Uint8Array(size);let offset=0;for(const part of chunks){data.set(part,offset);offset+=part.length;}
  try{const parsed=JSON.parse(new TextDecoder().decode(data));if(!parsed||Array.isArray(parsed)||typeof parsed!=='object')fail(400,'invalidInput');return parsed;}catch(e){if(e instanceof HttpError)throw e;fail(400,'invalidInput');}
 }
-function identity(request){const id=request.headers.get('oai-authenticated-user-id');const email=request.headers.get('oai-authenticated-user-email');return id&&email?id:null;}
-function moderator(request,env){const email=request.headers.get('oai-authenticated-user-email');return !!identity(request)&&((!!env.MODERATOR_USER_ID&&identity(request)===env.MODERATOR_USER_ID)||(!!env.MODERATOR_EMAIL&&email?.toLowerCase()===env.MODERATOR_EMAIL.toLowerCase()));}
+function moderator(user,env){return !!user&&((!!env.MODERATOR_USER_ID&&user.id===env.MODERATOR_USER_ID)||(!!env.MODERATOR_EMAIL&&user.email.toLowerCase()===env.MODERATOR_EMAIL.toLowerCase()));}
 async function profile(db,id){const p=await one(db,'SELECT id,name,group_name AS "group",role,university,language,created FROM profiles WHERE id=?',id);if(!p)fail(403,'finishOnboarding');return p;}
 async function blocked(db,a,b){return !!await one(db,'SELECT 1 FROM blocks WHERE (blocker_id=? AND blocked_id=?) OR (blocker_id=? AND blocked_id=?) LIMIT 1',a,b,b,a);}
 async function conversation(db,id,user){const c=await one(db,'SELECT * FROM conversations WHERE id=? AND (author_id=? OR helper_id=?)',id,user,user);if(!c)fail(404,'notFound');if(await blocked(db,c.author_id,c.helper_id))fail(403,'blocked');return c;}
@@ -26,15 +26,16 @@ function cursor(value){if(value==null)return null;const n=Number(value);if(!Numb
 export async function handleApi(request,env){
  try{
   const url=new URL(request.url), path=url.pathname, method=request.method;
+  if(path==='/api/auth-config'&&method==='GET')return json(authConfig(env));
   if(path==='/api/health'&&method==='GET')return json({ok:true,storage:env.DB?'configured':'unavailable',version:'1.0.0'});
-  if(!env.DB)fail(503,'unavailable');const db=env.DB,id=identity(request);
+  if(!env.DB)fail(503,'unavailable');const db=env.DB,user=await authenticatedUser(request,env),id=user?.id??null;
   if(method!=='GET'){
    if(!['POST','PUT','DELETE'].includes(method))fail(405,'notAllowed');
    if(request.headers.get('origin')!==url.origin||request.headers.get('x-common-ground')!=='1')fail(403,'badOrigin');
   }
   if(path==='/api/me'&&method==='GET'){
    const p=id?await one(db,'SELECT id,name,group_name AS "group",role,university,language,created FROM profiles WHERE id=?',id):null;
-   return json({signedIn:!!id,profile:p,moderator:moderator(request,env)});
+   return json({signedIn:!!id,profile:p,moderator:moderator(user,env)});
   }
   if(!id)fail(401,'signIn');
   if(path==='/api/profile'&&method==='PUT'){
@@ -120,11 +121,11 @@ export async function handleApi(request,env){
    if(input.conversationId){await conversation(db,text(input.conversationId,1,200),id);conversationId=input.conversationId;}
    if(!postId&&!conversationId)fail(400,'invalidInput');const reportId=crypto.randomUUID();await query(db,'INSERT INTO reports(id,reporter_id,post_id,conversation_id,reason,created) VALUES(?,?,?,?,?,?)',reportId,id,postId,conversationId,reason,Date.now()).run();return json({id:reportId},201);
   }
-  if(path==='/api/reports'&&method==='GET'){if(!moderator(request,env))fail(403,'notAllowed');return json({reports:await many(db,"SELECT r.*,p.title,p.body FROM reports r LEFT JOIN posts p ON p.id=r.post_id WHERE r.status='open' ORDER BY r.created DESC LIMIT 100")});}
+  if(path==='/api/reports'&&method==='GET'){if(!moderator(user,env))fail(403,'notAllowed');return json({reports:await many(db,"SELECT r.*,p.title,p.body FROM reports r LEFT JOIN posts p ON p.id=r.post_id WHERE r.status='open' ORDER BY r.created DESC LIMIT 100")});}
   match=path.match(/^\/api\/reports\/([^/]+)$/);
-  if(match&&method==='GET'){if(!moderator(request,env))fail(403,'notAllowed');const report=await one(db,'SELECT * FROM reports WHERE id=?',match[1]);if(!report)fail(404,'notFound');const messages=report.conversation_id?await many(db,'SELECT m.body,m.guide_id AS guideId,m.created,p.name FROM messages m JOIN profiles p ON p.id=m.author_id WHERE m.conversation_id=? ORDER BY m.id DESC LIMIT 100',report.conversation_id):[];return json({report,messages:messages.reverse()});}
+  if(match&&method==='GET'){if(!moderator(user,env))fail(403,'notAllowed');const report=await one(db,'SELECT * FROM reports WHERE id=?',match[1]);if(!report)fail(404,'notFound');const messages=report.conversation_id?await many(db,'SELECT m.body,m.guide_id AS guideId,m.created,p.name FROM messages m JOIN profiles p ON p.id=m.author_id WHERE m.conversation_id=? ORDER BY m.id DESC LIMIT 100',report.conversation_id):[];return json({report,messages:messages.reverse()});}
   match=path.match(/^\/api\/reports\/([^/]+)\/resolve$/);
-  if(match&&method==='POST'){if(!moderator(request,env))fail(403,'notAllowed');await query(db,"UPDATE reports SET status='resolved' WHERE id=?",match[1]).run();return json({ok:true});}
+  if(match&&method==='POST'){if(!moderator(user,env))fail(403,'notAllowed');await query(db,"UPDATE reports SET status='resolved' WHERE id=?",match[1]).run();return json({ok:true});}
   fail(404,'notFound');
- }catch(error){if(error instanceof HttpError)return json({error:error.code},error.status);console.error('Common Ground API unavailable',error?.name);return json({error:'unavailable'},503);}
+ }catch(error){if(error instanceof HttpError||error instanceof AuthError)return json({error:error.code},error.status);console.error('Common Ground API unavailable',error?.name);return json({error:'unavailable'},503);}
 }

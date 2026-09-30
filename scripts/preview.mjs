@@ -24,7 +24,7 @@ http.createServer(async(req,res)=>{
   if(url.pathname==='/signout-with-chatgpt'){res.writeHead(302,{'Set-Cookie':'cg_dev_user=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict','Location':'/'});res.end();return;}
   const chunks=[];let total=0;for await(const chunk of req){total+=chunk.length;if(total>20000){res.writeHead(413);res.end();return;}chunks.push(chunk);}
   const request=new Request(url,{method:req.method,headers,body:['GET','HEAD'].includes(req.method)?undefined:Buffer.concat(chunks)});
-  const response=await worker.fetch(request,{DB,MODERATOR_EMAIL:'alice@example.test'});
+  const response=await worker.fetch(request,{DB,MODERATOR_EMAIL:'alice@example.test',...Object.fromEntries(['AUTH_PROVIDER','FIREBASE_PROJECT_ID','FIREBASE_API_KEY','FIREBASE_APP_ID'].filter(key=>process.env[key]).map(key=>[key,process.env[key]]))});
   res.writeHead(response.status,Object.fromEntries(response.headers));res.end(Buffer.from(await response.arrayBuffer()));
  }catch(error){console.error(error);res.writeHead(500);res.end('Local server error');}
 }).listen(4173,'127.0.0.1',()=>console.log('Local live preview: '+origin+' (test identities only; not deployed)'));

@@ -1,0 +1,19 @@
+// Optional CLI configuration. Copy to ignored wrangler.jsonc and replace placeholders.
+// For GitHub dashboard deployments, configure the same variables/binding in Pages settings.
+{
+  "name": "drfrog",
+  "compatibility_date": "2026-09-30",
+  "pages_build_output_dir": "./cloudflare-dist",
+  "vars": {
+    "AUTH_PROVIDER": "firebase",
+    "FIREBASE_PROJECT_ID": "REPLACE_WITH_PROJECT_ID",
+    "FIREBASE_API_KEY": "REPLACE_WITH_PUBLIC_WEB_API_KEY",
+    "FIREBASE_APP_ID": "REPLACE_WITH_WEB_APP_ID"
+  },
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "common-ground-drfrog",
+    "database_id": "REPLACE_WITH_CREATED_DATABASE_ID",
+    "migrations_dir": "drizzle"
+  }]
+}

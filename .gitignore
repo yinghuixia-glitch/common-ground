@@ -8,3 +8,5 @@ node_modules/
 .local/
 dist/server/
 dist/.openai/
+cloudflare-dist/
+wrangler.jsonc

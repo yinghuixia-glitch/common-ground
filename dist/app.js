@@ -1,18 +1,19 @@
-import {language,t,setLanguage,translate} from './i18n.js?v=29dff81c7a5c';
-import {guides} from './guides.js?v=29dff81c7a5c';
+import {language,t,setLanguage,translate} from './i18n.js?v=da9b6fa64b40';
+import {guides} from './guides.js?v=da9b6fa64b40';
+import {initAuth,authHeaders,refreshAuthLabels,openAuth,authProvider} from './auth.js?v=da9b6fa64b40';
 const $=id=>document.getElementById(id), el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
 const state={signedIn:false,profile:null,moderator:false,questions:[],helpers:[],conversations:[],active:null,messages:[],hasOlder:false,hasMore:false,view:'community',offerId:null,reportTarget:null};
 let toastTimer,toastKey,confirmAction,refreshing=false;
 function toast(key){toastKey=key;$('toast').textContent=t(key);$('toast').style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').style.display='none',5000);}
-async function api(path,method='GET',data){const res=await fetch('/api'+path,{method,credentials:'same-origin',cache:'no-store',headers:method==='GET'?{}:{'Content-Type':'application/json','X-Common-Ground':'1'},body:data===undefined?undefined:JSON.stringify(data)});let value;try{value=await res.json();}catch{throw Error('unavailable');}if(!res.ok)throw Error(value.error||'unavailable');return value;}
+async function api(path,method='GET',data){const res=await fetch('/api'+path,{method,credentials:'same-origin',cache:'no-store',headers:{...await authHeaders(),...(method==='GET'?{}:{'Content-Type':'application/json','X-Common-Ground':'1'})},body:data===undefined?undefined:JSON.stringify(data)});let value;try{value=await res.json();}catch{throw Error('unavailable');}if(!res.ok)throw Error(value.error||'unavailable');return value;}
 function button(key,action,cls='secondary'){const b=el('button',cls,t(key));b.type='button';b.addEventListener('click',()=>run(b,action));return b;}
 async function run(control,action){if(control?.disabled)return;if(control)control.disabled=true;try{await action();}catch(e){toast(e.message);if(e.message==='signIn'||e.message==='finishOnboarding')await bootstrap(false);}finally{if(control)control.disabled=false;}}
 function bindForm(id,action){$(id).addEventListener('submit',e=>{e.preventDefault();run($(id).querySelector('button[type=submit],button:not([type])'),action);});}
 function status(error){$('load-status').hidden=!error;if(error)$('load-status').textContent=t(error);}
-function requireMember(){if(state.profile)return true;if(state.signedIn)openProfile();else{$('welcome').scrollIntoView({behavior:'instant',block:'center'});toast('signIn');}return false;}
+function requireMember(){if(state.profile)return true;if(state.signedIn)openProfile();else{$('welcome').scrollIntoView({behavior:'instant',block:'center'});if(authProvider()==='firebase')openAuth();else toast('signIn');}return false;}
 function showView(view){if(view==='conversations'&&!requireMember())return;state.view=view;$('community-view').hidden=view!=='community';$('conversations-view').hidden=view!=='conversations';$('community-nav').classList.toggle('active',view==='community');$('conversation-nav').classList.toggle('active',view==='conversations');if(view==='conversations')renderChat();}
 function showTab(which,focus=false){for(const key of ['questions','guide']){const active=key===which;$(key+'-tab').setAttribute('aria-selected',String(active));$(key+'-tab').tabIndex=active?0:-1;$(key+'-pane').hidden=!active;}if(focus)$(which+'-tab').focus();}
-function renderAccount(){document.querySelectorAll('.sign-in').forEach(e=>e.hidden=state.signedIn);$('sign-out').hidden=!state.signedIn;$('profile-button').hidden=!state.profile;$('welcome').hidden=!!state.profile;$('onboard-button').hidden=!state.signedIn;$('question-fields').disabled=!state.profile||state.profile.group!=='neurodivergent';$('ask-status').textContent=!state.profile?t(state.signedIn?'finishOnboarding':'signIn'):state.profile.group!=='neurodivergent'?t('ndOnly'):state.profile.name+' · '+t(state.profile.role);$('chat-count').textContent=state.conversations.length;}
+function renderAccount(){document.querySelectorAll('.sign-in').forEach(e=>e.hidden=state.signedIn);$('sign-out').hidden=!state.signedIn;$('profile-button').hidden=!state.profile;$('welcome').hidden=!!state.profile;$('onboard-button').hidden=!state.signedIn;$('question-fields').disabled=!state.profile||state.profile.group!=='neurodivergent';$('ask-status').textContent=!state.profile?t(state.signedIn?'finishOnboarding':'signIn'):state.profile.group!=='neurodivergent'?t('ndOnly'):state.profile.name+' · '+t(state.profile.role);$('chat-count').textContent=state.conversations.length;refreshAuthLabels();}
 function renderQuestions(){const feed=$('question-feed');feed.replaceChildren();$('question-count').textContent=state.questions.length;$('more-questions').hidden=!state.hasMore;
  if(!state.profile){feed.append(el('p','empty',t('joinFeed')));return;}
  const qs=state.questions.filter(q=>!$('filter').value||q.topic===$('filter').value);if(!qs.length)feed.append(el('p','empty',t('noQuestions')));
@@ -53,7 +54,8 @@ bindForm('question-form',async()=>{if(!requireMember())return;await api('/questi
 bindForm('offer-form',async()=>{await api('/questions/'+state.offerId+'/offers','POST',{message:$('offer-message').value});$('offer-dialog').close();await refresh();toast('offered');});
 bindForm('message-form',async()=>{if(!state.active)return;await api('/conversations/'+state.active+'/messages','POST',{body:$('message').value});$('message').value='';await loadMessages();toast('sent');});
 bindForm('report-form',async()=>{await api('/reports','POST',{...state.reportTarget,reason:$('report-reason').value});$('report-dialog').close();toast('reported');});
-translate();renderGuides();renderAccount();renderQuestions();bootstrap();
+translate();renderGuides();renderAccount();renderQuestions();
+initAuth(async()=>{Object.assign(state,{signedIn:false,profile:null,moderator:false,questions:[],helpers:[],conversations:[],active:null,messages:[]});showView('community');renderAccount();renderQuestions();renderHelpers();renderConversations();await bootstrap();}).then(()=>bootstrap()).catch(e=>status(e.message));
 setInterval(()=>{if(document.visibilityState==='visible'&&state.profile&&!document.querySelector('dialog[open]'))refresh().catch(()=>{});},15000);
 
 // Read-only browser tools use the same visible guide and server-authorized feed.
