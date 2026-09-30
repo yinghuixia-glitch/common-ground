@@ -8,9 +8,9 @@ A bilingual university peer-support community for students and staff across univ
 
 ## Copyright and use
 
-© 2026 **Peng Wang (王彭) and Yinghui Xia (夏颖慧)**. Rights reserved in their original contributions to the extent protected by applicable law. The hosted community is free to use; the original project material is not offered under an open-source licence. See [LICENSE](LICENSE) for the scope and [NOTICE](NOTICE) for provenance, AI assistance and exclusions. Third-party software and fonts retain their own licences; members' content is excluded from this ownership claim. Public GitHub viewing/forking permissions and statutory exceptions remain. Ownership shares and formal registrations are not established by these notices.
+© 2026 **DrFrog creators**. This is a public attribution label for the individual creators, not a separate legal entity. Legal identities are retained in private project records. Rights are reserved in their original contributions to the extent protected by applicable law. The hosted community is free to use; the original project material is not offered under an open-source licence. See [LICENSE](LICENSE) for the scope and [NOTICE](NOTICE) for provenance, AI assistance and exclusions. Third-party software and fonts retain their own licences; members' content is excluded from this ownership claim. Public GitHub viewing/forking permissions and statutory exceptions remain. Ownership shares and formal registrations are not established by these notices.
 
-© 2026 **王彭、夏颖慧**。在适用法律保护的范围内保留原创贡献的权利。网站可免费使用；项目原创材料未授予开源许可。第三方材料保留各自许可，成员内容不属于本项目所有权主张。公开 GitHub 仓库的查看、分叉权限与法定例外不受影响。本声明不确定权利份额，也不代表已完成正式登记。
+© 2026 **DrFrog 创作者**。这是个人创作者的公开署名，不是独立法律主体；法律身份保存在私人项目记录中。在适用法律保护的范围内保留原创贡献的权利。网站可免费使用；项目原创材料未授予开源许可。第三方材料保留各自许可，成员内容不属于本项目所有权主张。公开 GitHub 仓库的查看、分叉权限与法定例外不受影响。本声明不确定权利份额，也不代表已完成正式登记。
 
 ## Join the community
 
