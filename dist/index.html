@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Common Ground · University peer support</title>
+  <meta name="description" content="A university peer-support prototype. Ask a question, offer help, and build understanding with a shared neurodiversity guide.">
+  <link rel="icon" type="image/svg+xml" href="assets/frog-favicon.svg">
+  <link rel="preload" href="fonts/Fredoka.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="fonts/ComicNeue-Regular.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="cartoon.css"><script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to community</a>
+<header>
+  <a class="brand" href="./"><span class="brandmark" aria-hidden="true"><img src="assets/frog-reference.jpg" alt="" width="1179" height="2556"></span><span>common ground<span class="brand-sub">UNIVERSITY PEER SUPPORT</span></span></a>
+  <nav aria-label="Main"><button class="nav active" id="community-nav">Community</button><button class="nav" id="conversation-nav">Conversations <span id="chat-count" class="count">0</span></button></nav>
+  <span class="prototype-label">Interactive prototype</span>
+</header>
+<div class="demo-note">A space to try the idea. People and offers are examples; your posts and messages stay in this browser. <button id="reset">Reset demo</button></div>
+<main id="main">
+  <div class="intro"><div><p class="eyebrow">DIFFERENT MINDS. SHARED CAMPUS LIFE.</p><h1>A little understanding goes a long way.</h1><p>Ask for support. Offer your perspective. Find common ground.</p></div><div class="community-pill">Students &amp; staff<span>Across universities</span></div></div>
+  <div class="workspace" id="community-view">
+    <aside class="ask-panel panel">
+      <div class="section-marker">01 <span>NEURODIVERGENT GROUP</span></div><h2>What’s on your mind?</h2><p class="muted">A place for neurodivergent students and staff to ask for support.</p>
+      <form id="question-form">
+        <label for="question-title">Your question</label><input id="question-title" required maxlength="140" placeholder="How do I ask for clearer feedback?">
+        <label for="question-body">A little context</label><textarea id="question-body" rows="4" required maxlength="2000" placeholder="What happened, and what would help?"></textarea>
+        <label for="topic">Topic</label><select id="topic"><option>Communication</option><option>Studying</option><option>Campus life</option><option>Adjustments</option></select>
+        <div class="form-row"><div><label for="role">I’m a</label><select id="role"><option>Student</option><option>Staff member</option></select></div><div><label for="alias">Display name</label><input id="alias" maxlength="40" placeholder="You" autocomplete="off"></div></div>
+        <label for="university">University <span class="optional">optional</span></label><input id="university" maxlength="80" placeholder="Your university">
+        <button type="submit" class="primary full">Post to the shared space</button><p class="small">Share only what you feel comfortable sharing. No diagnosis is needed.</p>
+      </form>
+      <div class="aside-tip"><span class="tip-icon" aria-hidden="true">✳</span><div><strong>You set the pace.</strong><p>In the demo, you choose whether to accept a help offer before a conversation opens.</p></div></div>
+    </aside>
+    <section class="shared-panel" aria-labelledby="shared-title">
+      <div class="section-marker">02 <span>CONNECT &amp; UNDERSTAND</span></div><div class="section-heading"><h2 id="shared-title">The shared space</h2><span class="small">A bridge between both groups</span></div>
+      <div class="tabs" role="tablist" aria-label="Shared space"><button id="questions-tab" role="tab" aria-selected="true" aria-controls="questions-pane" tabindex="0">Open questions <span id="question-count"></span></button><button id="guide-tab" role="tab" aria-selected="false" aria-controls="guide-pane" tabindex="-1">Shared guide</button></div>
+      <section id="questions-pane" role="tabpanel" aria-labelledby="questions-tab"><div class="filter-row"><label for="filter">Show</label><select id="filter"><option>All topics</option><option>Communication</option><option>Studying</option><option>Campus life</option><option>Adjustments</option></select><span class="small">Example community + your posts</span></div><div id="question-feed"></div></section>
+      <section id="guide-pane" role="tabpanel" aria-labelledby="guide-tab" hidden><div class="guide-intro"><p class="eyebrow">A REFERENCE YOU CAN SHARE</p><h3>Understanding starts with a question.</h3><p>Practical conversation prompts, study ideas, and university support resources. Ask the person what works for them.</p></div><label for="guide-search">Find a guide</label><input id="guide-search" type="search" placeholder="Try communication, sensory, or deadlines"><div id="guide-list"></div><div class="ai-note"><strong>About the AI idea</strong><p>This prototype uses a searchable guide. A future optional on-device model could explain these entries and help phrase messages, with sources alongside its answers.</p></div></section>
+    </section>
+    <aside class="help-panel panel"><div class="section-marker">03 <span>NEUROTYPICAL GROUP</span></div><h2>A different perspective.</h2><p class="muted">A place for neurotypical students and staff to offer support.</p><div class="helper-card"><span class="avatar teal">JL</span><div><strong>Jamie L.</strong><span>Student · Example campus A</span></div><p>“Happy to talk through group work and getting started on assignments.”</p><span class="chip">Studying</span></div><div class="helper-card"><span class="avatar blue">RK</span><div><strong>Rowan K.</strong><span>Staff · Example campus B</span></div><p>“I can help you prepare questions for a study adviser.”</p><span class="chip">Adjustments</span></div><p class="small">Example profiles, not real people.</p><div class="help-how"><h3>See a question you can help with?</h3><p>Open an offer on a question in the shared space. The author decides whether to connect.</p><button id="help-focus" class="secondary full">Browse questions</button></div><div class="shared-reference"><span aria-hidden="true">▤</span><h3>A shared point of reference</h3><p>Bring a guide into the conversation so you can discuss it together.</p><button class="text-button" id="open-guide">Explore the shared guide</button></div></aside>
+  </div>
+  <section id="conversations-view" hidden><div class="chat-layout"><aside class="panel"><p class="eyebrow">YOUR CONNECTIONS</p><h2>Conversations</h2><p class="small">Demo messages are saved locally and are not delivered to another person.</p><div id="conversation-list"></div></aside><section class="panel" id="chat-main"><div id="chat-empty"><h2>A conversation starts with consent.</h2><p>Accept an example offer on your question, or offer help on an example question to explore the flow.</p><button class="primary" id="back-community">Find a question</button></div><div id="chat-content" hidden><div class="chat-heading"><div><h2 id="chat-name"></h2><p id="chat-context" class="small"></p></div><button id="close-chat" class="secondary">End demo connection</button></div><p class="chat-label">Local conversation preview · no real recipient</p><div id="messages" role="log" aria-label="Demo conversation" aria-live="polite"></div><form id="message-form"><label for="message">Your message</label><div class="compose"><input id="message" required maxlength="2000" placeholder="What would be helpful for you?"><button class="primary">Add message</button></div></form></div></section><aside class="panel chat-guide"><p class="eyebrow">SHARED REFERENCE</p><h2>Find a starting point</h2><p>Choose a guide to add to your conversation.</p><div id="chat-guides"></div></aside></div></section>
+</main>
+<footer><strong>Common ground is built together.</strong><span>Peer support · Individual preferences matter · Prototype v0.1</span></footer>
+<dialog id="offer-dialog"><form id="offer-form"><button type="button" class="dialog-close" aria-label="Close" id="offer-close">×</button><p class="eyebrow">START WITH AN OFFER</p><h2>Offer a little help</h2><p id="offer-question"></p><label for="helper-name">Display name · neurotypical group</label><input id="helper-name" required maxlength="40" placeholder="Your name"><label for="offer-message">What can you help with?</label><textarea id="offer-message" required maxlength="1000" rows="3" placeholder="I’ve had a similar experience. Would it help to talk it through?"></textarea><p class="small">This is a local example. The next screen simulates the author’s acceptance; nothing is sent.</p><button class="primary full" type="submit">Create demo offer</button></form></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+</body></html>

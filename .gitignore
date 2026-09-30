@@ -1,0 +1,5 @@
+*.tar.gz
+.sites-runtime/
+.env
+.env.*
+preview*.jpg
