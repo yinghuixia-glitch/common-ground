@@ -45,6 +45,7 @@ for(const key of ['questions','guide']){$(key+'-tab').onclick=()=>showTab(key);$
 $('open-guide').onclick=()=>{showTab('guide');$('guide-tab').scrollIntoView({behavior:'instant',block:'start'});};$('help-focus').onclick=()=>{showTab('questions');$('questions-tab').focus();};$('filter').onchange=renderQuestions;$('guide-search').oninput=renderGuides;
 $('refresh').onclick=()=>run($('refresh'),refresh);$('more-questions').onclick=()=>run($('more-questions'),()=>loadQuestions(true));$('older-messages').onclick=()=>run($('older-messages'),()=>loadMessages(false,true));
 $('profile-button').onclick=()=>run(null,openProfile);$('onboard-button').onclick=()=>run(null,openProfile);$('privacy-button').onclick=()=>$('privacy-dialog').showModal();
+$('rights-button').onclick=()=>$('rights-dialog').showModal();
 $('report-chat').onclick=()=>openReport({conversationId:state.active});$('block-chat').onclick=()=>{const c=activeConversation();if(c)confirm('blockConfirm',async()=>{await api('/blocks','POST',{userId:c.partnerId});await refresh();});};
 $('close-chat').onclick=()=>confirm('endConfirm',async()=>{await api('/conversations/'+state.active+'/end','POST',{});await refresh();});
 $('confirm-button').onclick=()=>run($('confirm-button'),async()=>{await confirmAction?.();$('confirm-dialog').close();});

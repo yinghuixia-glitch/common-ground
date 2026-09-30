@@ -1,0 +1,36 @@
+DrFrog / Common Ground
+© 2026 Peng Wang (王彭) and Yinghui Xia (夏颖慧).
+
+Original project material: rights reserved as described in LICENSE.
+The owners are identified at the user's direction. Their ownership shares are
+not settled by this notice. AI assistance was used in developing this project;
+do not describe the entire codebase or guide as solely human-authored.
+
+Frog portrait: supplied by the user, who reported on 30 September 2026 that it
+was generated with Gemini. The original prompt, generation date, inputs,
+model/product and human editing history have not been supplied. The displayed
+portrait and favicon use the supplied pixels with framing/cropping only.
+This notice does not claim confirmed exclusive copyright in the illustration.
+Preserve the original generation records and applicable Google product terms.
+
+Palette: cream #E9E0D0, slate #6F8097 and terracotta #C88972 were selected from a
+user-supplied reference. No exclusive ownership of these colours or of the
+reference screenshot is claimed.
+
+Fonts: Fredoka and Comic Neue, under the SIL Open Font License 1.1.
+Their full supplied licences are in public/fonts/Fredoka-OFL.txt and
+public/fonts/ComicNeue-OFL.txt. System fonts are not redistributed.
+
+Software: runtime dependencies and bundled Firebase components retain their
+own licences and notices. See public/third-party-notices.txt, package-lock.json
+and the legal comments preserved in the generated bundles.
+
+Guide references: links to the National Autistic Society and University of
+Washington remain third-party resources. Their source material and marks are
+not claimed as project-owned. Links do not imply endorsement.
+
+Member questions, profiles and messages: excluded from the project ownership
+claim. This notice does not transfer members' rights.
+
+DrFrog: a project name, not a representation of a registered trademark.
+The project has not completed trademark clearance or a registration filing.

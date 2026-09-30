@@ -4,7 +4,13 @@ A bilingual university peer-support community for students and staff across univ
 
 **Website:** https://drfrog.pages.dev
 
-**DrFrog deployment:** Cloudflare Pages hosts the app, Cloudflare D1 stores community data, and Firebase provides verified email/password accounts. Setup and deployment instructions are in [DEPLOY-CLOUDFLARE.md](DEPLOY-CLOUDFLARE.md). The original Sites address remains available during transition. Its database had no community profiles at cutover. No old browser data was uploaded.
+**DrFrog deployment:** Cloudflare Pages hosts the app, Cloudflare D1 stores community data, and Firebase provides verified email/password accounts. Setup and deployment instructions are in [DEPLOY-CLOUDFLARE.md](DEPLOY-CLOUDFLARE.md). The original Sites deployment is now owner-only and is not the public community address. Its database had no community profiles at cutover. No old browser data was uploaded.
+
+## Copyright and use
+
+© 2026 **Peng Wang (王彭) and Yinghui Xia (夏颖慧)**. Rights reserved in their original contributions to the extent protected by applicable law. The hosted community is free to use; the original project material is not offered under an open-source licence. See [LICENSE](LICENSE) for the scope and [NOTICE](NOTICE) for provenance, AI assistance and exclusions. Third-party software and fonts retain their own licences; members' content is excluded from this ownership claim. Public GitHub viewing/forking permissions and statutory exceptions remain. Ownership shares and formal registrations are not established by these notices.
+
+© 2026 **王彭、夏颖慧**。在适用法律保护的范围内保留原创贡献的权利。网站可免费使用；项目原创材料未授予开源许可。第三方材料保留各自许可，成员内容不属于本项目所有权主张。公开 GitHub 仓库的查看、分叉权限与法定例外不受影响。本声明不确定权利份额，也不代表已完成正式登记。
 
 ## Join the community
 
@@ -86,4 +92,4 @@ The requested palette is cream **#E9E0D0**, slate **#6F8097**, and terracotta **
 
 Automated tests cover anonymous access, incomplete onboarding, group permissions, cross-origin writes, private offers, author-only acceptance, idempotent acceptance, participant-only messages, Chinese text, guide references, ending connections, bidirectional blocking, operator-only report review, rate limits and pagination across equal timestamps.
 
-Local browser checks cover both-language onboarding, language switching with a question draft, a help offer sent from another account, author acceptance, messages, guide sharing, language persistence and responsive layouts. Production publishing is verified through the hosting platform. External ChatGPT sign-in still needs a real visitor's first-run check.
+Local browser checks cover both-language onboarding, language switching with a question draft, a help offer sent from another account, author acceptance, messages, guide sharing, language persistence and responsive layouts. Production email signup, verification, profile completion and moderator access were checked with the owner's account.

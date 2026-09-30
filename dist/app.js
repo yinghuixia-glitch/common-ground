@@ -1,6 +1,6 @@
-import {language,t,setLanguage,translate} from './i18n.js?v=487998506258';
-import {guides} from './guides.js?v=487998506258';
-import {initAuth,authHeaders,refreshAuthLabels,openAuth,authProvider} from './auth.js?v=487998506258';
+import {language,t,setLanguage,translate} from './i18n.js?v=cb45c9557016';
+import {guides} from './guides.js?v=cb45c9557016';
+import {initAuth,authHeaders,refreshAuthLabels,openAuth,authProvider} from './auth.js?v=cb45c9557016';
 const $=id=>document.getElementById(id), el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
 const state={signedIn:false,profile:null,moderator:false,questions:[],helpers:[],conversations:[],active:null,messages:[],hasOlder:false,hasMore:false,view:'community',offerId:null,reportTarget:null};
 let toastTimer,toastKey,confirmAction,refreshing=false;
@@ -45,6 +45,7 @@ for(const key of ['questions','guide']){$(key+'-tab').onclick=()=>showTab(key);$
 $('open-guide').onclick=()=>{showTab('guide');$('guide-tab').scrollIntoView({behavior:'instant',block:'start'});};$('help-focus').onclick=()=>{showTab('questions');$('questions-tab').focus();};$('filter').onchange=renderQuestions;$('guide-search').oninput=renderGuides;
 $('refresh').onclick=()=>run($('refresh'),refresh);$('more-questions').onclick=()=>run($('more-questions'),()=>loadQuestions(true));$('older-messages').onclick=()=>run($('older-messages'),()=>loadMessages(false,true));
 $('profile-button').onclick=()=>run(null,openProfile);$('onboard-button').onclick=()=>run(null,openProfile);$('privacy-button').onclick=()=>$('privacy-dialog').showModal();
+$('rights-button').onclick=()=>$('rights-dialog').showModal();
 $('report-chat').onclick=()=>openReport({conversationId:state.active});$('block-chat').onclick=()=>{const c=activeConversation();if(c)confirm('blockConfirm',async()=>{await api('/blocks','POST',{userId:c.partnerId});await refresh();});};
 $('close-chat').onclick=()=>confirm('endConfirm',async()=>{await api('/conversations/'+state.active+'/end','POST',{});await refresh();});
 $('confirm-button').onclick=()=>run($('confirm-button'),async()=>{await confirmAction?.();$('confirm-dialog').close();});

@@ -1,6 +1,6 @@
 # DrFrog: independent hosting and email accounts
 
-**Live:** https://drfrog.pages.dev. Firebase project: `drfrog-447b8`. Cloudflare Pages project: `drfrog`. D1 database: `common-ground-drfrog`, binding `DB`. The owner added the production hostname to Firebase's authorized domains. The original Sites deployment is retained during transition and had no community profiles at cutover.
+**Live:** https://drfrog.pages.dev. Firebase project: `drfrog-447b8`. Cloudflare Pages project: `drfrog`. D1 database: `common-ground-drfrog`, binding `DB`. The owner added the production hostname to Firebase's authorized domains. The original Sites deployment is now owner-only and had no community profiles at cutover.
 
 Cloudflare rejected its GitHub integration with error 8000011. The production project therefore uses **Direct Upload** through Wrangler; GitHub contains the source and validates changes. The Git integration steps below are for a fresh project if that connection is repaired. They do not describe the current project's deployment mechanism.
 
