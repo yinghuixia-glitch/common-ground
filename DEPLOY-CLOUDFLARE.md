@@ -1,6 +1,22 @@
 # DrFrog: independent hosting and email accounts
 
-Prepared code; the independent production deployment still requires the owner's Firebase and Cloudflare project configuration. The existing Sites address continues working during setup. `drfrog.pages.dev` is a proposed name, subject to availability.
+**Live:** https://drfrog.pages.dev. Firebase project: `drfrog-447b8`. Cloudflare Pages project: `drfrog`. D1 database: `common-ground-drfrog`, binding `DB`. The owner added the production hostname to Firebase's authorized domains. The original Sites deployment is retained during transition and had no community profiles at cutover.
+
+Cloudflare rejected its GitHub integration with error 8000011. The production project therefore uses **Direct Upload** through Wrangler; GitHub contains the source and validates changes. The Git integration steps below are for a fresh project if that connection is repaired. They do not describe the current project's deployment mechanism.
+
+## Publish updates to the current project
+
+Copy `wrangler.example.jsonc` to ignored `wrangler.jsonc`, set the Firebase public identifiers, and set D1 database ID to `bec0a764-9ef5-431b-b1b0-23dfe029691b`. Authenticate Wrangler to the owner's Cloudflare account. Keep `MODERATOR_EMAIL` as a production secret in the Pages dashboard. Build, then publish:
+
+```sh
+npm ci
+npm test
+npm run build:cloudflare
+node scripts/check-cloudflare.mjs
+npx wrangler pages deploy cloudflare-dist --project-name drfrog --branch main
+```
+
+The existing D1 migration is already applied. Do not recreate or clear the database when deploying updates. Add and apply new migrations only when the schema changes.
 
 ## 1. Firebase (Spark plan)
 

@@ -1,6 +1,6 @@
-import {language,t,setLanguage,translate} from './i18n.js?v=da9b6fa64b40';
-import {guides} from './guides.js?v=da9b6fa64b40';
-import {initAuth,authHeaders,refreshAuthLabels,openAuth,authProvider} from './auth.js?v=da9b6fa64b40';
+import {language,t,setLanguage,translate} from './i18n.js?v=487998506258';
+import {guides} from './guides.js?v=487998506258';
+import {initAuth,authHeaders,refreshAuthLabels,openAuth,authProvider} from './auth.js?v=487998506258';
 const $=id=>document.getElementById(id), el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
 const state={signedIn:false,profile:null,moderator:false,questions:[],helpers:[],conversations:[],active:null,messages:[],hasOlder:false,hasMore:false,view:'community',offerId:null,reportTarget:null};
 let toastTimer,toastKey,confirmAction,refreshing=false;

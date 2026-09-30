@@ -1,6 +1,6 @@
-@font-face{font-family:"Comic Neue";src:url("fonts/ComicNeue-Regular.ttf?v=da9b6fa64b40") format("truetype");font-style:normal;font-weight:400;font-display:swap}
-@font-face{font-family:"Comic Neue";src:url("fonts/ComicNeue-Bold.ttf?v=da9b6fa64b40") format("truetype");font-style:normal;font-weight:700;font-display:swap}
-@font-face{font-family:"Fredoka";src:url("fonts/Fredoka.ttf?v=da9b6fa64b40") format("truetype");font-style:normal;font-weight:300 700;font-display:swap}
+@font-face{font-family:"Comic Neue";src:url("fonts/ComicNeue-Regular.ttf?v=487998506258") format("truetype");font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:"Comic Neue";src:url("fonts/ComicNeue-Bold.ttf?v=487998506258") format("truetype");font-style:normal;font-weight:700;font-display:swap}
+@font-face{font-family:"Fredoka";src:url("fonts/Fredoka.ttf?v=487998506258") format("truetype");font-style:normal;font-weight:300 700;font-display:swap}
 
 :root{
   --cream:#E9E0D0;
