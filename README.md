@@ -1,51 +1,87 @@
-# Common Ground
+# Common Ground · 共同点
 
-An interactive university peer-support prototype for students and staff across universities. The left group is neurodivergent; the right group is neurotypical. Group membership is self-selected. Questions and a shared guide occupy the center.
+A bilingual university peer-support community for students and staff across universities.
 
-## Try the prototype
+**Website:** https://common-ground-campus.momokoyjt.chatgpt.site
 
-Run `node preview.cjs` from this folder and open http://127.0.0.1:4173.
+## Join the community
 
-Post a question, add an example offer, and accept or decline it. Alternatively offer help on an example question and simulate the author's acceptance. Accepted offers open a local conversation; add a message or share a guide entry. End a connection or reset the demo from the interface.
+1. Choose **English** or **中文** in the header.
+2. Select **Sign in with ChatGPT**. A ChatGPT account is required for community participation.
+3. Choose a display name, your group (neurodivergent or neurotypical), student/staff role, and an optional university.
+4. Read and agree to the community guidelines.
+5. Neurodivergent members can post questions. Neurotypical members can send help offers. The question's author must accept before a conversation opens.
+6. Send messages, share a guide, end a connection, or block/report a member.
 
-This is a frontend prototype, not a live community. Example profiles are fictional. Browser storage holds posts, offers, and messages on one device and origin. Nothing is delivered to another person. There are no real accounts, server permissions, identity verification, moderation, or AI inference. The shared guide consists of original conversation prompts with links to university resources, not a clinical encyclopedia. Individual preferences and university processes differ.
+The shared guide is available before sign-in. Interface language changes do not translate or alter members' own posts and messages. Guide references are displayed in the selected language.
 
-## A free live pilot
+## 加入社区
 
-GitHub can hold source code and revision history. Keep user records and secrets out of the repository. Host the static frontend on Cloudflare Pages using the free provided subdomain; no paid custom domain is needed. A Supabase Free project can provide authentication, a database, and realtime subscriptions within its quotas.
+1. 在页首选择 **English** 或 **中文**。
+2. 点击 **通过 ChatGPT 登录**。参与社区需要 ChatGPT 账号。
+3. 填写昵称，选择神经多样性或神经典型群组、学生或教职员工身份；大学名称可选填。
+4. 阅读并同意社区规则。
+5. 神经多样性成员可以发布问题；神经典型成员可以发送帮助邀请。只有问题发布者接受后，双方才能开始对话。
+6. 发送消息、分享指南、结束连接，或屏蔽与举报成员。
 
-Checked 30 September 2026: Supabase Free lists 50,000 monthly active users, 500 MB database space, 5 GB egress, and 1 GB file storage. Projects pause after one week of inactivity. These quotas are separate limits; the user allowance does not mean unlimited messaging. Stay on free plans and restrict usage when quotas are reached rather than enabling paid overages. Availability and pricing can change, so a permanent unlimited-free guarantee is not possible.
+共享指南无需登录即可阅读。切换界面语言不会改写成员发布的问题与消息，引用的指南会随界面语言切换。
 
-- Hosting: https://www.cloudflare.com/products/pages/
-- Database/authentication quotas: https://supabase.com/pricing
-- Free quota restrictions: https://supabase.com/docs/guides/platform/billing-faq
-- GitHub: https://docs.github.com/en/get-started/start-your-journey/what-is-github
+## Accounts, storage and privacy
 
-Before real users join, replace the local demo with server-backed accounts and posts. Use database row-level access rules so only a conversation's participants can read its messages, require author acceptance before creating a conversation, and provide block/report tools and a moderator workflow. Choose what university verification means; a typed university name is not verification. Staff status must not be presented as professional authority without checking it. Specify data retention/deletion and publish a clear privacy notice. Avoid collecting diagnostic documents.
+Production authentication is provided by Sites' dispatch-owned ChatGPT sign-in. The Worker trusts only the authenticated-user headers supplied by that platform. Do not host this Worker behind an untrusted proxy that permits visitors to forge these headers.
 
-## Optional AI
+Profiles, questions, offers, conversations, messages, blocks and reports are stored in Cloudflare D1 through Sites. They survive browser reloads and are shared between the authorized accounts. The old local prototype's browser data is not uploaded into the live community.
 
-WebLLM can run a language model in a compatible browser using WebGPU, avoiding a hosted inference bill. Users still need suitable hardware, storage, and a model download. Model licenses and hosting for model files need to be checked. Provide the searchable guide as a fallback for unsupported devices.
+- Only signed-in members with a completed profile can read questions and helper profiles.
+- Offers are readable only by their sender and the question's author.
+- Messages are readable only by the conversation's participants, with a separate operator-only path for reported conversations.
+- The site operator can access stored database records. Messages are not end-to-end encrypted.
+- Blocking works in both directions; ending a connection stops new messages for both people.
+- University membership, staff status and group choices are self-reported. No diagnosis, student ID or email is saved in community profiles.
+- The first release retains records until the operator removes them. Automated account deletion and retention schedules are not implemented.
+- Reports are stored for manual review; the service does not promise immediate responses.
 
-Use AI to explain referenced guide entries or suggest wording. Keep source links visible, distinguish suggestions from university policy, allow people to edit drafts, and never send generated messages automatically. A model is not the encyclopedia or a substitute for source review.
+The owner can open **My profile → Report queue** after joining. The moderator is configured through the private production variable `MODERATOR_EMAIL`, matched against the trusted sign-in email. It is not inferred from the member's self-selected staff role. The owner can also view database records through the Site settings.
 
-- https://webllm.mlc.ai/docs/
+## Cost and hosting
+
+The app has no charges to members, payments, paid model integration or external API key. The current hosted release uses the available Sites platform and its database; no additional paid hosting service or custom domain was purchased. Platform availability and quotas still apply. This is an early community release, not a promise of unlimited hosting forever.
+
+GitHub holds the source code. GitHub Pages alone cannot run the account and messaging backend. The live deployment is managed by Sites. The GitHub workflow validates changes; it does not automatically deploy them.
+
+## Shared guide
+
+The free searchable guide has original English and Chinese conversation prompts, practical university examples, and source links. It is a starting point for peer conversation, not clinical guidance or a university policy database. Autism-specific resources are labelled and do not represent every neurodivergent experience. No LLM is connected in this release.
+
+Sources include the National Autistic Society and University of Washington Disability Resources for Students.
+
+## Local development
+
+Requires Node.js 24 or newer (the preview/test adapter uses `node:sqlite`).
+
+```sh
+npm ci
+npm test
+npm run dev
+```
+
+Open http://127.0.0.1:4173. The local sign-in page offers Alice, Bob and Eve as development identities. These exist only in `scripts/preview.mjs`; they are not included in the deployed Worker. Local data is stored in ignored `.local/community.sqlite`. No production records or credentials are copied to the repository.
+
+`npm run build` generates `dist/server/index.js`, including the frontend assets, and a deployment manifest. Sites packaging includes the generated Drizzle migrations. Schema changes belong in `db/schema.ts`; run `npm run db:generate` and inspect the SQL. Once a migration has been applied in production, preserve it and append new migrations.
 
 ## Source layout
 
-- `dist/index.html`: interface and metadata
-- `dist/styles.css`: responsive layout and styles
-- `dist/cartoon.css`: cream (#E9E0D0), blue-grey (#6F8097), and terracotta (#C88972) cartoon theme
-- `dist/assets/`: supplied frog portrait and matching favicon; the source image is framed in a circular viewport without redrawing it
-- `dist/fonts/`: self-hosted Fredoka and Comic Neue fonts, with their SIL Open Font License files
-- `dist/app.js`: local prototype flows and optional browser tool registration
-- `preview.cjs`: local static server, using Node built-ins only
-- `.openai/hosting.json`: private Sites preview identity and static configuration
+- `public/`: bilingual UI, guide, responsive styles, supplied frog portrait and self-hosted fonts.
+- `src/api.mjs`: server authorization, profiles, posts, offers, messages, blocks and reports.
+- `db/schema.ts` and `drizzle/`: database schema and generated migrations.
+- `scripts/build.mjs`: Worker build; `scripts/preview.mjs`: local-only server.
+- `tests/community.test.mjs`: multi-account access, consent, communication, block/report and pagination tests.
+- `.openai/hosting.json`: the existing Site identity and logical database binding.
 
-The static files can be hosted elsewhere without the Sites manifest. A private Site is registered for an owner-only hosted prototype. Consult the latest successful deployment result for the hosted URL. The local preview is http://127.0.0.1:4173.
+The requested palette is cream **#E9E0D0**, slate **#6F8097**, and terracotta **#C88972**. The supplied frog is framed as a circular logo without redrawing it. Fredoka and Comic Neue are bundled under the included SIL Open Font License files; Chinese uses available system fonts.
 
 ## Validation
 
-JavaScript syntax passed. In the browser, creating a local question updated the feed; invalid question input was rejected without adding a post. A demo help offer remained pending until acceptance, acceptance opened a conversation, a local message and guide reference appeared in the chat, and ending the connection disabled further message composition. Guide search returned a relevant entry and rejected invalid input. Desktop (1440 px) and mobile (390 px) checks showed no document-level horizontal overflow. Demo data was reset after testing.
+Automated tests cover anonymous access, incomplete onboarding, group permissions, cross-origin writes, private offers, author-only acceptance, idempotent acceptance, participant-only messages, Chinese text, guide references, ending connections, bidirectional blocking, operator-only report review, rate limits and pagination across equal timestamps.
 
-For the cartoon restyle, the exact supplied frog portrait and both self-hosted font families loaded successfully. The cream background matches #E9E0D0, with #6F8097 and #C88972 accents. The restyled desktop and mobile layouts showed no document-level horizontal overflow. Existing local questions and conversations were preserved.
+Local browser checks cover both-language onboarding, language switching with a question draft, a help offer sent from another account, author acceptance, messages, guide sharing, language persistence and responsive layouts. Production publishing is verified through the hosting platform. External ChatGPT sign-in still needs a real visitor's first-run check.

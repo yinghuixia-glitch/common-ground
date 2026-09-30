@@ -1,5 +1,5 @@
-import {language,t,setLanguage,translate} from './i18n.js?v=29dff81c7a5c';
-import {guides} from './guides.js?v=29dff81c7a5c';
+import {language,t,setLanguage,translate} from './i18n.js';
+import {guides} from './guides.js';
 const $=id=>document.getElementById(id), el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
 const state={signedIn:false,profile:null,moderator:false,questions:[],helpers:[],conversations:[],active:null,messages:[],hasOlder:false,hasMore:false,view:'community',offerId:null,reportTarget:null};
 let toastTimer,toastKey,confirmAction,refreshing=false;

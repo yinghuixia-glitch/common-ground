@@ -3,3 +3,8 @@
 .env
 .env.*
 preview*.jpg
+node_modules/
+.tools/
+.local/
+dist/server/
+dist/.openai/
