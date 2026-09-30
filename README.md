@@ -42,8 +42,10 @@ Use AI to explain referenced guide entries or suggest wording. Keep source links
 - `preview.cjs`: local static server, using Node built-ins only
 - `.openai/hosting.json`: private Sites preview identity and static configuration
 
-The static files can be hosted elsewhere without the Sites manifest. A private Site was registered, but publication could not complete because the installed plugin's publishing helper became unavailable during this session. No hosted preview URL is confirmed. The working preview is local at http://127.0.0.1:4173.
+The static files can be hosted elsewhere without the Sites manifest. A private Site is registered for an owner-only hosted prototype. Consult the latest successful deployment result for the hosted URL. The local preview is http://127.0.0.1:4173.
 
 ## Validation
 
 JavaScript syntax passed. In the browser, creating a local question updated the feed; invalid question input was rejected without adding a post. A demo help offer remained pending until acceptance, acceptance opened a conversation, a local message and guide reference appeared in the chat, and ending the connection disabled further message composition. Guide search returned a relevant entry and rejected invalid input. Desktop (1440 px) and mobile (390 px) checks showed no document-level horizontal overflow. Demo data was reset after testing.
+
+For the cartoon restyle, the exact supplied frog portrait and both self-hosted font families loaded successfully. The cream background matches #E9E0D0, with #6F8097 and #C88972 accents. The restyled desktop and mobile layouts showed no document-level horizontal overflow. Existing local questions and conversations were preserved.
