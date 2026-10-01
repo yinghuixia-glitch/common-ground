@@ -16,7 +16,31 @@ node scripts/check-cloudflare.mjs
 npx wrangler pages deploy cloudflare-dist --project-name drfrog --branch main
 ```
 
-The existing D1 migration is already applied. Do not recreate or clear the database when deploying updates. Add and apply new migrations only when the schema changes.
+The original community schema is already applied. Do not recreate or clear the database when deploying updates. This Pages project is a direct Wrangler upload: pushing to GitHub runs validation but does not publish the site. Add migrations when the schema changes, preserving previously applied files; the fixed runtime bootstrap below supports the current additive feature release without management-API DDL access.
+
+## Community feature update
+
+The bilingual release adds seven areas: optional communication tags, six editable campus message templates, separately published community experiences, four question support choices, five campus situations, browser-local reading settings, and waiting/open/resolved question filters. **Tools & ideas** contains the toolbox, situations and experiences; **My profile** contains preferences; **Reading** contains comfort controls. Both groups can continue to ask and help.
+
+- Communication preferences default to hidden. Members must select **Show these tags to other members** and save before tags appear with their questions, offers, member cards or conversations. Hidden values, including preferred language, are omitted from peer API responses. The operator can still access the stored values in D1.
+- Shared experiences require a completed profile and explicit publication consent. The member feed returns no author name or account ID, but D1 retains the author reference for operator moderation. Authors can delete their contributions; members can report them. Reports retain a body/topic snapshot after the original contribution is deleted, and operators can remove a reported contribution while resolving the report. Private conversations are not copied automatically.
+- Larger text, a plain font, one-section mode and the 30/60/120-second or manual update choice are saved in that browser's local storage. They are not account preferences. Manual mode requires the relevant **Refresh** button for new questions/messages. Toolbox drafts remain only in the currently open page and are separate by template and language; they clear on reload or account change.
+- Question support choices are optional. Only the author can resolve or reopen a question. A resolved question rejects new offers while its existing conversations continue. Before pagination, the waiting filter selects open questions with no pending or accepted offer from an unblocked member; declined or blocked offers do not prevent a question from appearing there.
+
+### Additive database extension
+
+`drizzle/0002_community_features.sql` adds four tables without altering existing community tables:
+
+| Table | Purpose |
+| --- | --- |
+| `profile_preferences` | Selected communication tags, preferred language and member-visible opt-in |
+| `question_features` | Optional support kind and open/resolved status |
+| `takeaways` | Separately consented experiences and their author references |
+| `takeaway_report_links` | Report linkage and retained body/topic snapshots |
+
+The migration also adds three indexes on `takeaways`. On the first authenticated community API request, `ensureCommunitySchema()` in `src/community-features.mjs` issues only the fixed `CREATE TABLE IF NOT EXISTS` and `CREATE INDEX IF NOT EXISTS` statements through the existing D1 `DB` binding. Readiness is cached for that binding in the Worker instance; initialization errors clear the cache so a later request can retry. No request supplies arbitrary SQL, and existing profiles, posts, offers, conversations and messages are preserved.
+
+This path accommodates the current Wrangler management-API DDL restriction. If migration permissions become available, applying the committed additive migration later is safe because the same tables/indexes use `IF NOT EXISTS`; record migration history through the normal migration tool rather than changing old migration files. For a new database, apply the original `0000_lethal_polaris.sql` schema first. The bootstrap creates only the extension tables, not the original community schema. The separate account rate-limit extension remains documented below.
 
 ## 1. Firebase (Spark plan)
 
