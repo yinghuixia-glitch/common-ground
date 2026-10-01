@@ -1,4 +1,4 @@
-# Common Ground · 共同点
+# Common Ground · 共识之地
 
 A bilingual university peer-support community for students and staff across universities.
 

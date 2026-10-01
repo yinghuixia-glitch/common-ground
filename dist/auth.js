@@ -1,4 +1,4 @@
-import {t,language} from './i18n.js?v=4832526a1fd9';
+import {t,language} from './i18n.js?v=874afcb32cb4';
 let provider='chatgpt',auth,sdk,changed=()=>{};
 const $=id=>document.getElementById(id);
 const errors={'auth/invalid-credential':'invalidCredentials','auth/wrong-password':'invalidCredentials','auth/user-not-found':'invalidCredentials','auth/invalid-email':'invalidInput','auth/email-already-in-use':'emailInUse','auth/weak-password':'weakPassword','auth/too-many-requests':'tooFast','auth/network-request-failed':'authUnavailable'};
@@ -10,7 +10,7 @@ export async function authHeaders(){if(provider!=='firebase'||!auth?.currentUser
 export async function initAuth(onChange){
  changed=onChange;const response=await fetch('/api/auth-config',{cache:'no-store'});if(!response.ok)throw Error('authUnavailable');const config=await response.json();provider=config.provider;
  if(provider!=='firebase')return;
- sdk=await import('./firebase-client.js?v=4832526a1fd9');auth=sdk.initializeAuth(sdk.initializeApp(config.firebase),{persistence:sdk.browserLocalPersistence});
+ sdk=await import('./firebase-client.js?v=874afcb32cb4');auth=sdk.initializeAuth(sdk.initializeApp(config.firebase),{persistence:sdk.browserLocalPersistence});
  auth.languageCode=language==='zh'?'zh-CN':'en';
  // Let the SDK restore its signed-in session before loading member data.
  await auth.authStateReady();
