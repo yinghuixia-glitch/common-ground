@@ -8,6 +8,13 @@
       "when": 1790791888505,
       "tag": "0000_lethal_polaris",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1790865685313,
+      "tag": "0001_auth_limits",
+      "breakpoints": true
     }
   ]
 }

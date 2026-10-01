@@ -1,4 +1,5 @@
 import {authenticatedUser,authConfig,AuthError} from './auth.mjs';
+import {handleAuth} from './auth-routes.mjs';
 export const TOPICS=['Communication','Studying','Campus life','Adjustments'];
 export const GUIDE_IDS=['communication','studying','sensory','adjustments','preferences'];
 class HttpError extends Error{constructor(status,code){super(code);this.status=status;this.code=code;}}
@@ -28,11 +29,16 @@ export async function handleApi(request,env){
   const url=new URL(request.url), path=url.pathname, method=request.method;
   if(path==='/api/auth-config'&&method==='GET')return json(authConfig(env));
   if(path==='/api/health'&&method==='GET')return json({ok:true,storage:env.DB?'configured':'unavailable',version:'1.0.0'});
-  if(!env.DB)fail(503,'unavailable');const db=env.DB,user=await authenticatedUser(request,env),id=user?.id??null;
+  if(!env.DB)fail(503,'unavailable');const db=env.DB;
   if(method!=='GET'){
    if(!['POST','PUT','DELETE'].includes(method))fail(405,'notAllowed');
    if(request.headers.get('origin')!==url.origin||request.headers.get('x-common-ground')!=='1')fail(403,'badOrigin');
   }
+  if(path.startsWith('/api/auth/')){
+   if(method!=='POST')fail(405,'notAllowed');
+   return await handleAuth(request,env,await body(request));
+  }
+  const user=await authenticatedUser(request,env),id=user?.id??null;
   if(path==='/api/me'&&method==='GET'){
    const p=id?await one(db,'SELECT id,name,group_name AS "group",role,university,language,created FROM profiles WHERE id=?',id):null;
    return json({signedIn:!!id,profile:p,moderator:moderator(user,env)});
@@ -57,16 +63,16 @@ export async function handleApi(request,env){
    return json({questions:selected.map(p=>({id:p.id,title:p.title,body:p.body,topic:p.topic,authorId:p.author_id,name:p.name,role:p.role,university:p.university,created:p.created,mine:p.author_id===id,offers:offers.filter(o=>o.post_id===p.id).map(o=>({id:o.id,name:o.name,helperId:o.helper_id,text:o.body,status:o.status,conversationId:o.conversationId,mine:o.helper_id===id}))})),hasMore:posts.length>50});
   }
   if(path==='/api/questions'&&method==='POST'){
-   if(me.group!=='neurodivergent')fail(403,'askGroup');await limit(db,'posts','author_id',id,10);
+   await limit(db,'posts','author_id',id,10);
    const input=await body(request), title=text(input.title,1,140),details=text(input.body,1,2000);if(!TOPICS.includes(input.topic))fail(400,'invalidInput');
    const postId=crypto.randomUUID();await query(db,'INSERT INTO posts(id,author_id,title,body,topic,created) VALUES(?,?,?,?,?,?)',postId,id,title,details,input.topic,Date.now()).run();return json({id:postId},201);
   }
-  if(path==='/api/helpers'&&method==='GET')return json({helpers:await many(db,`SELECT id,name,role,university FROM profiles p WHERE group_name='neurotypical' AND id!=? AND NOT EXISTS(SELECT 1 FROM blocks b WHERE (b.blocker_id=? AND b.blocked_id=p.id) OR (b.blocker_id=p.id AND b.blocked_id=?)) ORDER BY created DESC LIMIT 30`,id,id,id)});
+  if(path==='/api/helpers'&&method==='GET')return json({helpers:await many(db,`SELECT id,name,role,university FROM profiles p WHERE id!=? AND NOT EXISTS(SELECT 1 FROM blocks b WHERE (b.blocker_id=? AND b.blocked_id=p.id) OR (b.blocker_id=p.id AND b.blocked_id=?)) ORDER BY created DESC LIMIT 30`,id,id,id)});
   let match=path.match(/^\/api\/questions\/([^/]+)$/);
   if(match&&method==='DELETE'){const result=await query(db,'DELETE FROM posts WHERE id=? AND author_id=?',match[1],id).run();if(!result.meta.changes)fail(404,'notFound');return json({ok:true});}
   match=path.match(/^\/api\/questions\/([^/]+)\/offers$/);
   if(match&&method==='POST'){
-   if(me.group!=='neurotypical')fail(403,'helpGroup');await limit(db,'offers','helper_id',id,10);
+   await limit(db,'offers','helper_id',id,10);
    const post=await one(db,'SELECT * FROM posts WHERE id=?',match[1]);if(!post)fail(404,'notFound');if(post.author_id===id)fail(400,'invalidInput');if(await blocked(db,id,post.author_id))fail(403,'blocked');
    const input=await body(request),message=text(input.message,1,1000),offerId=crypto.randomUUID();
    if(await one(db,'SELECT id FROM offers WHERE post_id=? AND helper_id=?',post.id,id))fail(409,'alreadyOffered');

@@ -18,7 +18,7 @@ A bilingual university peer-support community for students and staff across univ
 2. Select **Sign in with email → Create account**, verify your email, then click **I’ve verified my email**. Returning members use their email and password. Password recovery is available in the same dialog.
 3. Choose a display name, your group (neurodivergent or neurotypical), student/staff role, and an optional university.
 4. Read and agree to the community guidelines.
-5. Neurodivergent members can post questions. Neurotypical members can send help offers. The question's author must accept before a conversation opens.
+5. Both groups can post questions and offer help to other members. The question's author must accept before a conversation opens.
 6. Send messages, share a guide, end a connection, or block/report a member.
 
 The shared guide is available before sign-in. Interface language changes do not translate or alter members' own posts and messages. Guide references are displayed in the selected language.
@@ -29,7 +29,7 @@ The shared guide is available before sign-in. Interface language changes do not 
 2. 点击 **邮箱登录 → 注册账号**，完成邮件验证后点击 **我已验证邮箱**。已有账号可用邮箱与密码登录，也可以在同一窗口重置密码。
 3. 填写昵称，选择神经多样性或神经典型群组、学生或教职员工身份；大学名称可选填。
 4. 阅读并同意社区规则。
-5. 神经多样性成员可以发布问题；神经典型成员可以发送帮助邀请。只有问题发布者接受后，双方才能开始对话。
+5. 两个群组都可以发布问题，也可以为其他成员提供帮助。只有问题发布者接受邀请后，双方才能开始对话。
 6. 发送消息、分享指南、结束连接，或屏蔽与举报成员。
 
 共享指南无需登录即可阅读。切换界面语言不会改写成员发布的问题与消息，引用的指南会随界面语言切换。
@@ -86,10 +86,10 @@ Open http://127.0.0.1:4173. The local sign-in page offers Alice, Bob and Eve as 
 - `tests/community.test.mjs`: multi-account access, consent, communication, block/report and pagination tests.
 - `.openai/hosting.json`: the existing Site identity and logical database binding.
 
-The requested palette is cream **#E9E0D0**, slate **#6F8097**, and terracotta **#C88972**. The supplied frog is framed as a circular logo without redrawing it. Fredoka and Comic Neue are bundled under the included SIL Open Font License files; Chinese uses available system fonts.
+The requested palette is cream **#E9E0D0**, slate **#6F8097**, and terracotta **#C88972**. The supplied frog is framed as a circular logo without redrawing it. Fredoka, Comic Neue and ZCOOL KuaiLe are self-hosted with their included SIL Open Font License files.
 
 ## Validation
 
-Automated tests cover anonymous access, incomplete onboarding, group permissions, cross-origin writes, private offers, author-only acceptance, idempotent acceptance, participant-only messages, Chinese text, guide references, ending connections, bidirectional blocking, operator-only report review, rate limits and pagination across equal timestamps.
+Automated tests cover anonymous access, incomplete onboarding, mutual participation, cross-origin writes, private offers, author-only acceptance, idempotent acceptance, participant-only messages, Chinese text, guide references, ending connections, bidirectional blocking, operator-only report review, rate limits and pagination across equal timestamps. Account tests cover secure cookies, fixed provider endpoints, session refresh, verification, recovery and abuse limits.
 
 Local browser checks cover both-language onboarding, language switching with a question draft, a help offer sent from another account, author acceptance, messages, guide sharing, language persistence and responsive layouts. Production email signup, verification, profile completion and moderator access were checked with the owner's account.

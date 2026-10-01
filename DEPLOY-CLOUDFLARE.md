@@ -30,6 +30,18 @@ The existing D1 migration is already applied. Do not recreate or clear the datab
 
 Users create an email/password account, verify their email, and complete the existing bilingual community onboarding. Firebase handles passwords, verification, and password-reset delivery. The server validates signed Firebase ID tokens and requires verified email. It ignores OpenAI identity headers on the independent host. No Google or ChatGPT account is required for community members.
 
+## Accounts on networks that cannot reach Google
+
+The browser now calls only `/api/auth/*` on DrFrog. The Cloudflare Worker calls a fixed allowlist of Firebase REST operations, forwards passwords over HTTPS without storing or logging them, and keeps ID/refresh tokens in Secure, HttpOnly, host-only cookies. Existing Firebase user IDs, passwords and community profiles are retained; members who used the previous browser SDK should sign in again after this update. The browser connection policy permits only the site itself. This removes direct browser requests to Google; mainland China delivery still needs a real network test, and email delivery/provider quotas still apply.
+
+The additive `0001_auth_limits.sql` migration adds only rate-limit counters with hashed IP/window keys, expiring after 15 minutes and purged on subsequent account requests. The Worker also initializes this fixed table/index through the existing D1 binding on its first account request, so signup does not depend on Wrangler management-API DDL permissions. Both bootstrap and migration use `IF NOT EXISTS`; running the migration later is safe. Cloudflare's management API denied the migration-list initialization with error 7403 during this update despite the existing D1 OAuth scope, so this release uses the binding bootstrap. No account password or community record is stored in that table. Account requests are limited per IP; sessions have a separate allowance. The server also keeps existing post/message abuse limits and consent/block/privacy rules.
+
+For email links to open directly on DrFrog, in Firebase **Authentication → Templates**, edit an email template, choose **Customize action URL**, and set **https://drfrog.pages.dev/**. Firebase's custom handler receives `mode` and `oobCode`; the app supports email verification and password resets and clears these parameters from the address bar before further requests. No service-account credential is needed by the app. The owner must save this console setting; deploying the app does not change Firebase email templates.
+
+Until that setting is saved (and for old emails), members can select **Email link won’t open? Verify or reset here**, copy the full verification/reset link from their own email, and paste it into the dialog. This applies the code through the same first-party endpoint and does not require opening `firebaseapp.com`. Verification is never skipped. New password submission requires an email reset code; applying a verification code does not sign in the email recipient.
+
+Primary documentation: [Firebase REST API](https://firebase.google.com/docs/reference/rest/auth), [custom email action handlers](https://firebase.google.com/docs/auth/custom-email-handler).
+
 ## 2. Cloudflare Pages (free account)
 
 1. Workers & Pages → Create application → Pages → Connect to Git. Authorize the owner's repository `yinghuixia-glitch/common-ground`.

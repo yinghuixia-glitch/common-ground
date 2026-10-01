@@ -8,8 +8,10 @@ try{
  const env={DB,AUTH_PROVIDER:'chatgpt',FIREBASE_PROJECT_ID:'test-project',FIREBASE_API_KEY:'public-test-key',FIREBASE_APP_ID:'test-app'};
  const config=await worker.fetch(new Request(base+'/api/auth-config'),env);assert.equal((await config.json()).provider,'firebase');
  const forged=await worker.fetch(new Request(base+'/api/me',{headers:{'oai-authenticated-user-id':'owner','oai-authenticated-user-email':'owner@example.test'}}),env);assert.equal((await forged.json()).signedIn,false);
- const page=await worker.fetch(new Request(base+'/'),env);assert.equal(page.status,200);assert.match(page.headers.get('content-security-policy'),/connect-src 'self' https:\/\/identitytoolkit.googleapis.com https:\/\/securetoken.googleapis.com/);
+ const page=await worker.fetch(new Request(base+'/'),env);assert.equal(page.status,200);assert.match(page.headers.get('content-security-policy'),/connect-src 'self';/);
  const html=await page.text();assert.doesNotMatch(html,/signin-with-chatgpt/);assert.match(html,/data-i18n="emailWelcome"/);
+ const auth=await worker.fetch(new Request(base+'/auth.js'),env);const authSource=await auth.text();assert.match(authSource,/\/api\/auth\//);assert.doesNotMatch(authSource,/import\('.\/firebase-client/);
+ const session=await worker.fetch(new Request(base+'/api/auth/session',{method:'POST',headers:{Origin:base,'Content-Type':'application/json','X-Common-Ground':'1'},body:'{}'}),env);assert.deepEqual(await session.json(),{user:null});
  const sdk=await worker.fetch(new Request(base+'/firebase-client.js'),env);assert.equal(sdk.status,200);assert.match(await sdk.text(),/sendEmailVerification/);
- console.log('Cloudflare bundle verified: Firebase required; forged platform headers ignored; client SDK and CSP available.');
+ console.log('Cloudflare bundle verified: Firebase required; forged platform headers ignored; first-party account requests and self-only connection policy available.');
 }finally{DB.close();}

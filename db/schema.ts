@@ -1,4 +1,7 @@
 import { sqliteTable, text, integer, index, uniqueIndex, primaryKey } from 'drizzle-orm/sqlite-core';
+export const authLimits = sqliteTable('auth_limits', {
+ bucket:text('bucket').primaryKey(), hits:integer('hits').notNull().default(1), expires:integer('expires').notNull()
+},t=>[index('auth_limits_expires').on(t.expires)]);
 export const profiles = sqliteTable('profiles', {
  id:text('id').primaryKey(), name:text('name').notNull(), group:text('group_name').notNull(),
  role:text('role').notNull(), university:text('university').notNull().default(''),

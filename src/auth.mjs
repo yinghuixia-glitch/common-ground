@@ -1,6 +1,12 @@
 import {createRemoteJWKSet,jwtVerify} from 'jose';
 const firebaseKeys=createRemoteJWKSet(new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'));
 export class AuthError extends Error{constructor(status,code){super(code);this.status=status;this.code=code;}}
+export const ID_COOKIE='__Host-drfrog-id',REFRESH_COOKIE='__Host-drfrog-refresh';
+export function cookie(request,name){
+ const values=(request.headers.get('cookie')??'').split(';').map(s=>s.trim()).filter(s=>s.startsWith(name+'='));
+ if(values.length!==1)return null;
+ try{return decodeURIComponent(values[0].slice(name.length+1));}catch{return null;}
+}
 export function authConfig(env){
  const provider=env.AUTH_PROVIDER??'chatgpt';
  if(provider==='chatgpt')return {provider};
@@ -14,12 +20,13 @@ export async function verifyFirebaseToken(token,projectId,keys=firebaseKeys){
  if(payload.email_verified!==true)throw new AuthError(403,'verifyEmail');
  return {id:'firebase:'+payload.sub,email:payload.email};
 }
-export async function authenticatedUser(request,env){
+export async function authenticatedUser(request,env,keys=firebaseKeys){
  const config=authConfig(env);
  if(config.provider==='chatgpt'){const id=request.headers.get('oai-authenticated-user-id'),email=request.headers.get('oai-authenticated-user-email');return id&&email?{id,email}:null;}
  // On the independent host, OpenAI headers are never a source of identity.
- const authorization=request.headers.get('authorization');if(!authorization)return null;
- if(!authorization.startsWith('Bearer ')||authorization.length>12000)throw new AuthError(401,'signIn');
- try{return await verifyFirebaseToken(authorization.slice(7),config.firebase.projectId);}
+ const authorization=request.headers.get('authorization'),sessionToken=cookie(request,ID_COOKIE);if(!authorization&&!sessionToken)return null;
+ if(authorization&&(!authorization.startsWith('Bearer ')||authorization.length>12000))throw new AuthError(401,'signIn');
+ const token=authorization?authorization.slice(7):sessionToken;if(token.length>12000)throw new AuthError(401,'signIn');
+ try{return await verifyFirebaseToken(token,config.firebase.projectId,keys);}
  catch(error){if(error instanceof AuthError)throw error;if(error?.code?.startsWith('ERR_JWT')||error?.code?.startsWith('ERR_JWS')||error?.code?.startsWith('ERR_JOSE'))throw new AuthError(401,'signIn');throw new AuthError(503,'authUnavailable');}
 }

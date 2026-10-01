@@ -1,8 +1,8 @@
-@font-face{font-family:"Comic Neue";src:url("fonts/ComicNeue-Regular.ttf?v=874afcb32cb4") format("truetype");font-style:normal;font-weight:400;font-display:swap}
-@font-face{font-family:"Comic Neue";src:url("fonts/ComicNeue-Bold.ttf?v=874afcb32cb4") format("truetype");font-style:normal;font-weight:700;font-display:swap}
-@font-face{font-family:"Fredoka";src:url("fonts/Fredoka.ttf?v=874afcb32cb4") format("truetype");font-style:normal;font-weight:300 700;font-display:swap}
+@font-face{font-family:"Comic Neue";src:url("fonts/ComicNeue-Regular.ttf?v=b6d94cdf4ffb") format("truetype");font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:"Comic Neue";src:url("fonts/ComicNeue-Bold.ttf?v=b6d94cdf4ffb") format("truetype");font-style:normal;font-weight:700;font-display:swap}
+@font-face{font-family:"Fredoka";src:url("fonts/Fredoka.ttf?v=b6d94cdf4ffb") format("truetype");font-style:normal;font-weight:300 700;font-display:swap}
 /* Chinese glyphs only: Latin text keeps Comic Neue and Fredoka. Self-hosted OFL font. */
-@font-face{font-family:"ZCOOL KuaiLe";src:url("fonts/ZCOOLKuaiLe-Regular.woff?v=874afcb32cb4") format("woff");font-style:normal;font-weight:400;font-display:swap;unicode-range:U+2E80-2FFF,U+3000-303F,U+3400-4DBF,U+4E00-9FFF,U+F900-FAFF,U+FF00-FFEF}
+@font-face{font-family:"ZCOOL KuaiLe";src:url("fonts/ZCOOLKuaiLe-Regular.woff?v=b6d94cdf4ffb") format("woff");font-style:normal;font-weight:400;font-display:swap;unicode-range:U+2E80-2FFF,U+3000-303F,U+3400-4DBF,U+4E00-9FFF,U+F900-FAFF,U+FF00-FFEF}
 
 :root{
   --cream:#E9E0D0;
