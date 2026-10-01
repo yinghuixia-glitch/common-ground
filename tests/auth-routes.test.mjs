@@ -13,7 +13,7 @@ function upstream(verified=false){
  const calls=[];
  const fetcher=async(url,options)=>{
   calls.push({url,payload:options.headers['Content-Type']==='application/json'?JSON.parse(options.body):Object.fromEntries(new URLSearchParams(options.body))});
-  assert.equal(new URL(url).searchParams.get('key'),'public-key');assert.equal(options.redirect,'error');
+  assert.equal(new URL(url).searchParams.get('key'),'public-key');assert.equal(options.redirect,'manual');
   const path=new URL(url).pathname;
   if(path.endsWith(':signUp')||path.endsWith(':signInWithPassword'))return Response.json({idToken:'id-token',refreshToken:'refresh-token',expiresIn:'3600'});
   if(path==='/v1/token')return Response.json({id_token:'refreshed-token',refresh_token:'refresh-token',expires_in:'3600'});
@@ -43,6 +43,20 @@ test('the first account request can bootstrap only the new counter table without
 test('cookie parsing rejects ambiguity and a forged cookie cannot authenticate',async()=>{
  assert.equal(cookie(req('session',ID_COOKIE+'=one; '+ID_COOKIE+'=two'),ID_COOKIE),null);assert.equal(cookie(req('session',ID_COOKIE+'=%zz'),ID_COOKIE),null);
  await assert.rejects(()=>authenticatedUser(req('session',ID_COOKIE+'=forged'),config),e=>e.status===401);
+});
+test('the default provider transport preserves the Worker native fetch receiver',async t=>{
+ const env=harness(t),original=globalThis.fetch,mock=upstream();
+ globalThis.fetch=async function(...args){assert.equal(this,globalThis);return mock.fetcher(...args);};
+ try{const res=await handleAuth(req('sign-in'),env,{email:'member@example.test',password:'test-password-123'});assert.equal((await res.json()).user.id,'firebase:member');}
+ finally{globalThis.fetch=original;}
+});
+test('a provider redirect fails closed without forwarding credentials to its target',async t=>{
+ const env=harness(t);let calls=0;
+ await assert.rejects(()=>handleAuth(req('sign-in'),env,{email:'member@example.test',password:'test-password-123'},async(url,options)=>{
+  calls++;assert.equal(options.redirect,'manual');assert.equal(new URL(url).hostname,'identitytoolkit.googleapis.com');
+  return new Response(null,{status:307,headers:{Location:'https://attacker.invalid'}});
+ }),e=>e.status===503&&e.diagnostic.reason==='providerRedirectRejected');
+ assert.equal(calls,1);
 });
 test('session refresh preserves the existing Firebase identity and clears revoked sessions',async t=>{
  const env=harness(t),mock=upstream(true);

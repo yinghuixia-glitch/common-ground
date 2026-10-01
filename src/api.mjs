@@ -133,5 +133,5 @@ export async function handleApi(request,env){
   match=path.match(/^\/api\/reports\/([^/]+)\/resolve$/);
   if(match&&method==='POST'){if(!moderator(user,env))fail(403,'notAllowed');await query(db,"UPDATE reports SET status='resolved' WHERE id=?",match[1]).run();return json({ok:true});}
   fail(404,'notFound');
- }catch(error){if(error instanceof HttpError||error instanceof AuthError)return json({error:error.code},error.status);console.error('Common Ground API unavailable',error?.name);return json({error:'unavailable'},503);}
+ }catch(error){if(error instanceof HttpError||error instanceof AuthError)return json({error:error.code,...(error.code==='authUnavailable'&&error.diagnostic?{diagnostic:error.diagnostic}:{})},error.status);console.error('Common Ground API unavailable',error?.name);return json({error:'unavailable'},503);}
 }

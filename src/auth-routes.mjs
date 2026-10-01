@@ -3,6 +3,9 @@ import {AuthError, authConfig, cookie, ID_COOKIE, REFRESH_COOKIE} from './auth.m
 const actions=new Set(['sign-in','sign-up','session','sign-out','send-verification','send-reset','verify-email','reset-password']);
 const invalidSession=new Set(['INVALID_ID_TOKEN','TOKEN_EXPIRED','USER_DISABLED','USER_NOT_FOUND','INVALID_REFRESH_TOKEN']);
 const errorKeys={INVALID_LOGIN_CREDENTIALS:'invalidCredentials',INVALID_PASSWORD:'invalidCredentials',EMAIL_NOT_FOUND:'invalidCredentials',EMAIL_EXISTS:'emailInUse',INVALID_EMAIL:'invalidInput',WEAK_PASSWORD:'weakPassword',TOO_MANY_ATTEMPTS_TRY_LATER:'tooFast',INVALID_OOB_CODE:'emailLinkInvalid',EXPIRED_OOB_CODE:'emailLinkInvalid'};
+// workerd's native fetch requires its global receiver; passing a detached
+// fetch function works in Node but throws Illegal invocation in Workers.
+const providerFetch=(url,options)=>globalThis.fetch(url,options);
 const readyDatabases=new WeakMap();
 async function ensureRateTable(db){
  let ready=readyDatabases.get(db);
@@ -33,17 +36,26 @@ function response(data,status=200,tokens=null,clear=false){
 
 // Only these fixed Firebase operations are reachable. No client-supplied URL,
 // arbitrary provider payload, password storage, or credential logging.
-async function firebase(env,operation,payload,locale='en',fetcher=fetch){
+async function firebase(env,operation,payload,locale='en',fetcher=providerFetch){
  const refresh=operation==='token';
  const url=refresh?'https://securetoken.googleapis.com/v1/token':'https://identitytoolkit.googleapis.com/v1/accounts:'+operation;
  let res;
- try{res=await fetcher(url+'?key='+encodeURIComponent(env.FIREBASE_API_KEY),{method:'POST',headers:{'Content-Type':refresh?'application/x-www-form-urlencoded':'application/json','X-Firebase-Locale':locale==='zh'?'zh-CN':'en'},body:refresh?new URLSearchParams(payload).toString():JSON.stringify(payload),redirect:'error',signal:AbortSignal.timeout(15000)});}
- catch{throw new AuthError(503,'authUnavailable');}
- let data;try{data=await res.json();}catch{throw new AuthError(503,'authUnavailable');}
+ try{res=await fetcher(url+'?key='+encodeURIComponent(env.FIREBASE_API_KEY),{method:'POST',headers:{'Content-Type':refresh?'application/x-www-form-urlencoded':'application/json','X-Firebase-Locale':locale==='zh'?'zh-CN':'en'},body:refresh?new URLSearchParams(payload).toString():JSON.stringify(payload),redirect:'manual',signal:AbortSignal.timeout(15000)});}
+ catch(cause){
+  const message=String(cause?.message??'');
+  const detail=/redirect/i.test(message)?'redirectPolicy':/Illegal invocation|incorrect.*this/i.test(message)?'fetchBinding':/AbortSignal|signal/i.test(message)?'abortSignal':/not a function/i.test(message)?'runtimeAPI':'networkUnavailable';
+  const error=new AuthError(503,'authUnavailable');error.diagnostic={reason:'providerNetwork',detail,type:['TypeError','TimeoutError','AbortError'].includes(cause?.name)?cause.name:'Error'};throw error;
+ }
+ // workerd rejects redirect:'error'. Manual mode plus rejecting all 3xx
+ // preserves the same protection: credentials never follow a redirect.
+ if(res.status>=300&&res.status<400){const error=new AuthError(503,'authUnavailable');error.diagnostic={reason:'providerRedirectRejected',status:res.status};throw error;}
+ let data;try{data=await res.json();}catch{const error=new AuthError(503,'authUnavailable');error.diagnostic={reason:'providerInvalidResponse',status:res.status};throw error;}
  if(!res.ok){
   const code=String(data.error?.message??'').split(/[ :]/)[0];
   const error=new AuthError(invalidSession.has(code)?401:res.status===429?429:400,errorKeys[code]??(invalidSession.has(code)?'signIn':'authUnavailable'));
-  error.firebaseCode=code;throw error;
+  error.firebaseCode=code;
+  const reason=data.error?.details?.find(d=>typeof d.reason==='string')?.reason??code;
+  error.diagnostic={reason:'providerRejected',status:res.status,code:/^[A-Z_]{1,60}$/.test(reason)?reason:'UNKNOWN'};throw error;
  }
  return data;
 }
@@ -69,7 +81,7 @@ async function rateLimit(request,env,action){
  if(row.hits>(session?120:30))throw new AuthError(429,'authTooFast');
 }
 
-export async function handleAuth(request,env,input,fetcher=fetch){
+export async function handleAuth(request,env,input,fetcher=providerFetch){
  const action=new URL(request.url).pathname.slice('/api/auth/'.length);
  if(!actions.has(action))throw new AuthError(404,'notFound');
  if(authConfig(env).provider!=='firebase')throw new AuthError(404,'notFound');
