@@ -1,0 +1,322 @@
+/* A small static cursor; touch and coarse-pointer devices keep native behavior. */
+@media (hover: hover) and (pointer: fine) {
+  html {
+    cursor: url("assets/frog-cursor.svg?v=eadba4ad8e53") 16 16, auto;
+  }
+
+  body :is(button, a, summary, [role="button"], input[type="checkbox"], input[type="radio"], select) {
+    cursor: url("assets/frog-cursor.svg?v=eadba4ad8e53") 16 16, pointer;
+  }
+
+  body :is(input:not([type="checkbox"]):not([type="radio"]), textarea, [contenteditable="true"], p, blockquote, .message, .takeaway-body) {
+    cursor: text;
+  }
+
+  body :is(button:disabled, input:disabled, textarea:disabled, select:disabled, [aria-disabled="true"]),
+  body input:not([type="checkbox"]):not([type="radio"]):disabled {
+    cursor: not-allowed;
+  }
+}
+
+/* Dedicated tablet widths. Phone and wide-desktop layouts stay in their own CSS. */
+@media (min-width: 761px) and (max-width: 1366px) {
+  header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "brand language" "navigation account";
+    align-items: center;
+    gap: 18px 22px;
+    padding: 20px clamp(24px, 3vw, 42px);
+  }
+
+  header .brand {
+    grid-area: brand;
+    min-width: 0;
+    justify-self: start;
+    max-width: 100%;
+  }
+
+  header nav {
+    grid-area: navigation;
+    margin-left: 0;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  header .language-switch {
+    grid-area: language;
+    justify-self: end;
+  }
+
+  header .account-actions {
+    grid-area: account;
+    justify-self: end;
+    justify-content: flex-end;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  main {
+    padding-right: clamp(24px, 3vw, 42px);
+    padding-left: clamp(24px, 3vw, 42px);
+  }
+
+  .intro {
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .intro > div:first-child {
+    min-width: 0;
+  }
+
+  .community-pill {
+    max-width: 260px;
+    white-space: normal;
+    flex-shrink: 0;
+  }
+
+  :is(button, a.primary, a.secondary, summary, select, input:not([type="checkbox"]):not([type="radio"])) {
+    min-height: 44px;
+  }
+
+  :is(button, summary) {
+    min-width: 44px;
+  }
+
+  :is(.text-button, header #sign-out, .guide-card a, #rights-dialog a) {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .checkbox {
+    min-height: 44px;
+    align-items: center;
+    padding: 4px 0;
+  }
+
+  .checkbox input {
+    width: 24px;
+    height: 24px;
+    margin-top: 0;
+  }
+
+  :is(.workspace, .chat-layout, .scenario-grid, .takeaway-layout) {
+    gap: 24px;
+  }
+
+  :is(.workspace > *, .chat-layout > *, .takeaway-layout > *, .discussion-layout > *, .answer-lane) {
+    min-width: 0;
+  }
+
+  .help-panel {
+    display: block;
+  }
+
+  .help-panel #helper-list {
+    display: block;
+  }
+
+  .question-actions,
+  .chat-tools,
+  .resource-actions {
+    gap: 12px 18px;
+  }
+
+  .filter-row {
+    gap: 10px 14px;
+  }
+
+  .filter-row select {
+    flex: 1 1 170px;
+    min-width: 0;
+  }
+
+  .filter-row #refresh {
+    margin-left: 0;
+  }
+
+  .answer-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    align-items: start;
+  }
+
+  .answer-lane {
+    overflow-wrap: anywhere;
+  }
+
+  .scenario-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr));
+  }
+
+  .resource-tabs {
+    gap: 12px;
+  }
+
+  .resource-panel {
+    width: 100%;
+  }
+
+  .chat-layout {
+    grid-template-columns: minmax(230px, .65fr) minmax(0, 1.75fr);
+  }
+
+  .chat-layout > .chat-guide {
+    grid-column: 1 / -1;
+  }
+
+  #conversation-list {
+    max-height: min(42dvh, 420px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 4px;
+  }
+
+  #chat-guides {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: 12px;
+  }
+
+  .chat-guide button {
+    margin: 0;
+  }
+
+  #messages {
+    max-height: min(52dvh, 640px);
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .compose {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .compose input {
+    flex: 1 1 240px;
+  }
+
+  .compose button {
+    flex: 0 0 auto;
+    min-width: 100px;
+  }
+
+  dialog {
+    width: min(640px, calc(100vw - 48px));
+    max-width: 640px;
+    max-height: calc(100dvh - 48px);
+    padding: 28px;
+    scroll-padding-block: 24px;
+  }
+
+  .dialog-close {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Existing comfort controls decide which panel is visible. */
+  html[data-focus="true"] .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html[data-focus="true"] :is(.scenario-grid, .takeaway-layout, .answer-grid) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Reply lanes remain readable in narrow portrait or split-screen windows. */
+@media (min-width: 761px) and (max-width: 849px) {
+  .answer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Portrait and narrow split-screen: the shared question space comes first. */
+@media (min-width: 761px) and (max-width: 1024px) {
+  header {
+    grid-template-areas: "brand language" "navigation navigation" "account account";
+  }
+
+  header .account-actions {
+    justify-self: start;
+    justify-content: flex-start;
+  }
+
+  .intro {
+    flex-wrap: wrap;
+  }
+
+  .welcome {
+    flex-wrap: wrap;
+  }
+
+  html:not([data-focus="true"]) .workspace {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html:not([data-focus="true"]) .workspace > .shared-panel {
+    grid-column: 1 / -1;
+    order: 0;
+    padding-top: 0;
+  }
+
+  html:not([data-focus="true"]) .workspace > .ask-panel {
+    grid-column: auto;
+    order: 1;
+  }
+
+  html:not([data-focus="true"]) .workspace > .help-panel {
+    grid-column: auto;
+    order: 2;
+  }
+
+  .chat-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #conversation-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 12px;
+    max-height: 260px;
+  }
+
+  #conversation-list .conversation-item {
+    margin: 0;
+  }
+
+  .takeaway-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Landscape: a generous question column, with roomy secondary cards beside it. */
+@media (min-width: 1025px) and (max-width: 1366px) {
+  html:not([data-focus="true"]) .workspace {
+    grid-template-columns: minmax(0, 1.85fr) minmax(300px, 1fr);
+    grid-template-rows: auto 1fr;
+  }
+
+  html:not([data-focus="true"]) .workspace > .shared-panel {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    padding-top: 0;
+  }
+
+  html:not([data-focus="true"]) .workspace > .ask-panel {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  html:not([data-focus="true"]) .workspace > .help-panel {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}

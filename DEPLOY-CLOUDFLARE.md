@@ -20,12 +20,30 @@ The original community schema is already applied. Do not recreate or clear the d
 
 ## Community feature update
 
+### Primary public discussion and optional private chat
+
+Questions now open a dedicated **Answers & open conversation** board. Each responder can create one root answer column at a time per question. Any permitted signed-in member with a verified account and completed profile can follow up directly in an accessible column, including the question's author and other responders; no invitation acceptance is required. The question's author participates through follow-ups rather than a root answer to their own question. The interface states member visibility before publication, and the API requires explicit `visibilityConsent` for each answer/comment.
+
+Here, public discussion is community-member visible: anonymous visitors cannot read or publish questions, answers or replies. Existing private offers and chat messages remain private under their original access rules and are not imported, migrated or republished into the new board. Optional new private invitations still require acceptance before participant-only chat begins.
+
+The waiting filter considers visible public answers as well as legacy private invitations before pagination. Only open questions with no visible root answer and no active, unblocked private invitation appear as waiting. Resolution stops new answer columns and private invitations; follow-ups in existing columns and existing private conversations can continue. Blocks apply to questions, root authors, individual commenters, pagination and counts.
+
+Content authors can delete their own answer/comment. Deleting a root answer cascades to its follow-ups. Members can report either kind of contribution; the moderator can remove the reported root column or only the reported comment while marking the report reviewed. Moderation stores snapshots of the question title/body and answer body, plus the comment body when relevant, so removal does not destroy the report context. This does not publish private chat content.
+
+### Frog pointer and iPad/tablet layout
+
+`public/tablet.css` adapts the same live app at 761–1366px viewport widths: portrait/narrow layouts put the shared question panel above the secondary cards; landscape layouts give it a wide primary column with the secondary cards beside it. Header wrapping, at least 44px controls, dialogs, chat lists and resources are adjusted for tablets. Parallel discussion columns use one column below 850px, two at wider tablet widths, and one in comfort focus mode. Phone and wide-desktop layouts retain their own breakpoints.
+
+`public/assets/frog-cursor.svg` is a static 32px sage/ink frog cursor with a 16,16 hotspot. It is applied only with fine-pointer/hover support and falls back to native cursors when unsupported. Touch keeps native behavior, while text entry/selection and disabled controls retain usable native cursors. No new service, separate tablet deployment or paid dependency is required.
+
+### Practical resources and preferences
+
 The bilingual release adds seven areas: optional communication tags, six editable campus message templates, separately published community experiences, four question support choices, five campus situations, browser-local reading settings, and waiting/open/resolved question filters. **Tools & ideas** contains the toolbox, situations and experiences; **My profile** contains preferences; **Reading** contains comfort controls. Both groups can continue to ask and help.
 
-- Communication preferences default to hidden. Members must select **Show these tags to other members** and save before tags appear with their questions, offers, member cards or conversations. Hidden values, including preferred language, are omitted from peer API responses. The operator can still access the stored values in D1.
+- Communication preferences default to hidden. Members must select **Show these tags to other members** and save before tags appear with their questions, public answers/follow-ups, private invitations, member cards or conversations. Hidden values, including preferred language, are omitted from peer API responses. The operator can still access the stored values in D1.
 - Shared experiences require a completed profile and explicit publication consent. The member feed returns no author name or account ID, but D1 retains the author reference for operator moderation. Authors can delete their contributions; members can report them. Reports retain a body/topic snapshot after the original contribution is deleted, and operators can remove a reported contribution while resolving the report. Private conversations are not copied automatically.
-- Larger text, a plain font, one-section mode and the 30/60/120-second or manual update choice are saved in that browser's local storage. They are not account preferences. Manual mode requires the relevant **Refresh** button for new questions/messages. Toolbox drafts remain only in the currently open page and are separate by template and language; they clear on reload or account change.
-- Question support choices are optional. Only the author can resolve or reopen a question. A resolved question rejects new offers while its existing conversations continue. Before pagination, the waiting filter selects open questions with no pending or accepted offer from an unblocked member; declined or blocked offers do not prevent a question from appearing there.
+- Larger text, a plain font, one-section mode and the 30/60/120-second or manual update choice are saved in that browser's local storage. They are not account preferences. Manual mode requires the relevant **Refresh** button for new questions, public discussions or private messages. Toolbox drafts remain only in the currently open page and are separate by template and language; they clear on reload or account change.
+- Question support choices are optional. Only the author can resolve or reopen a question. A resolved question rejects new public answer columns and private invitations while existing follow-ups and private conversations continue. The waiting filter counts visible public answers and pending/accepted invitations from unblocked members; declined or blocked invitations do not prevent a question from appearing there.
 
 ### Additive database extension
 
@@ -40,7 +58,19 @@ The bilingual release adds seven areas: optional communication tags, six editabl
 
 The migration also adds three indexes on `takeaways`. On the first authenticated community API request, `ensureCommunitySchema()` in `src/community-features.mjs` issues only the fixed `CREATE TABLE IF NOT EXISTS` and `CREATE INDEX IF NOT EXISTS` statements through the existing D1 `DB` binding. Readiness is cached for that binding in the Worker instance; initialization errors clear the cache so a later request can retry. No request supplies arbitrary SQL, and existing profiles, posts, offers, conversations and messages are preserved.
 
+`drizzle/0003_public_answers.sql` and `drizzle/meta/0003_snapshot.json` add the public-discussion extension:
+
+| Table | Purpose |
+| --- | --- |
+| `question_answers` | One separately consented root answer per member/question |
+| `question_answer_replies` | Direct member-visible follow-ups within an answer column |
+| `public_answer_report_links` | Report targets and retained question/answer/comment snapshots |
+
+Five indexes include `answers_post_author`, a unique post/author index that prevents duplicate root columns during simultaneous requests. `ensurePublicAnswersSchema()` in `src/public-answers.mjs` runs the same fixed additive `CREATE TABLE/INDEX IF NOT EXISTS` statements through `DB` after the community-feature bootstrap on the first authenticated community API request. Readiness is cached per binding and retries after initialization failure. No existing private offer or message is changed or published by this migration/bootstrap.
+
 This path accommodates the current Wrangler management-API DDL restriction. If migration permissions become available, applying the committed additive migration later is safe because the same tables/indexes use `IF NOT EXISTS`; record migration history through the normal migration tool rather than changing old migration files. For a new database, apply the original `0000_lethal_polaris.sql` schema first. The bootstrap creates only the extension tables, not the original community schema. The separate account rate-limit extension remains documented below.
+
+The current automated suite has 50 tests, including 15 discussion tests covering multi-member follow-ups, profile/visibility consent, preserved private content, blocks, resolution, deletion, moderator-only snapshots/removals, pagination, simultaneous root submissions, rate limits and additive migration/bootstrap. New discussion tests use local fictional identities. Real-member production verification should be recorded separately from those fixture checks.
 
 ## 1. Firebase (Spark plan)
 
@@ -84,7 +114,7 @@ Primary documentation: [Firebase REST API](https://firebase.google.com/docs/refe
 
 4. Storage & databases → D1: create **common-ground-drfrog**. Pages project → Settings → Bindings: add the database with binding name **DB**. Redeploy after changing runtime variables/bindings.
 5. Apply the committed migration before admitting members. With Wrangler authenticated to the owner's Cloudflare account, either use the example configuration (replace its placeholders) and `npx wrangler d1 migrations apply common-ground-drfrog --remote`, or run the SQL from `drizzle/0000_lethal_polaris.sql` in the new D1 database console. Apply it once to the new database; do not alter applied migrations.
-6. Add the assigned Pages hostname to Firebase's authorized domains. Confirm signup → verification → profile → question → accepted help offer → messages using two accounts, and confirm the moderator report queue.
+6. Add the assigned Pages hostname to Firebase's authorized domains. Check signup → verification → profile → question → independent public answer columns → direct follow-ups using at least three permitted accounts. Also check the optional private invitation/acceptance/message route and the moderator report queue. Record which checks use local fixtures and which use real production accounts.
 
 GitHub integration automatically deploys main-branch updates after this setup. The generated `_worker.js` contains the backend; static GitHub Pages cannot replace it. Cloudflare mode always requires Firebase configuration and fails closed when missing.
 

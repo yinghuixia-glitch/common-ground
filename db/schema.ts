@@ -57,3 +57,20 @@ export const takeawayReportLinks = sqliteTable('takeaway_report_links', {
  takeawayId:text('takeaway_id').references(()=>takeaways.id,{onDelete:'set null'}),
  bodySnapshot:text('body_snapshot').notNull(),topicSnapshot:text('topic_snapshot').notNull()
 });
+// Member-visible discussion lanes never reuse private conversation records.
+export const questionAnswers = sqliteTable('question_answers', {
+ id:text('id').primaryKey(),postId:text('post_id').notNull().references(()=>posts.id,{onDelete:'cascade'}),
+ authorId:text('author_id').notNull().references(()=>profiles.id,{onDelete:'cascade'}),body:text('body').notNull(),
+ visibilityConsentVersion:text('visibility_consent_version').notNull(),created:integer('created').notNull()
+},t=>[uniqueIndex('answers_post_author').on(t.postId,t.authorId),index('answers_post_created').on(t.postId,t.created,t.id),index('answers_author_created').on(t.authorId,t.created)]);
+export const questionAnswerReplies = sqliteTable('question_answer_replies', {
+ id:integer('id').primaryKey({autoIncrement:true}),answerId:text('answer_id').notNull().references(()=>questionAnswers.id,{onDelete:'cascade'}),
+ authorId:text('author_id').notNull().references(()=>profiles.id,{onDelete:'cascade'}),body:text('body').notNull(),
+ visibilityConsentVersion:text('visibility_consent_version').notNull(),created:integer('created').notNull()
+},t=>[index('answer_replies_answer_id').on(t.answerId,t.id),index('answer_replies_author_created').on(t.authorId,t.created)]);
+export const publicAnswerReportLinks = sqliteTable('public_answer_report_links', {
+ reportId:text('report_id').primaryKey().references(()=>reports.id,{onDelete:'cascade'}),targetKind:text('target_kind').notNull(),
+ answerId:text('answer_id').references(()=>questionAnswers.id,{onDelete:'set null'}),replyId:integer('reply_id').references(()=>questionAnswerReplies.id,{onDelete:'set null'}),
+ answerBodySnapshot:text('answer_body_snapshot').notNull(),replyBodySnapshot:text('reply_body_snapshot'),
+ questionTitleSnapshot:text('question_title_snapshot').notNull(),questionBodySnapshot:text('question_body_snapshot').notNull()
+});
