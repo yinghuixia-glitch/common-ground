@@ -15,7 +15,7 @@ A bilingual university peer-support community for students and staff across univ
 ## Join the community
 
 1. Choose **English** or **中文** in the header.
-2. Select **Sign in with email → Create account**, verify your email, then click **I’ve verified my email**. Returning members use their email and password. Password recovery is available in the same dialog.
+2. Select **Sign in with email → Create account**, verify your email, then click **Check verification & continue**. Returning members use their email and password; an already-verified address does not need another verification email. Password recovery is available in the same dialog.
 3. Choose a display name, your group (neurodivergent or neurotypical), student/staff role, and an optional university. You can also choose communication preferences; displaying those tags to other members is optional and off by default.
 4. Read and agree to the community guidelines.
 5. Both groups can post questions. Open **Answers & open conversation** on a question to publish an answer in your own column, or join an existing column's follow-ups. Public community discussion starts immediately; the question's author does not need to accept an invitation.
@@ -26,13 +26,19 @@ The shared guide is available before sign-in. Interface language changes do not 
 ## 加入社区
 
 1. 在页首选择 **English** 或 **中文**。
-2. 点击 **邮箱登录 → 注册账号**，完成邮件验证后点击 **我已验证邮箱**。已有账号可用邮箱与密码登录，也可以在同一窗口重置密码。
+2. 点击 **邮箱登录 → 注册账号**，完成邮件验证后点击 **检查验证结果并继续**。已有账号可用邮箱与密码登录；已验证的邮箱无需反复接收验证邮件。也可以在同一窗口重置密码。
 3. 填写昵称，选择神经多样性或神经典型群组、学生或教职员工身份；大学名称可选填。也可以选择沟通偏好，默认不向其他成员展示，是否显示标签由你决定。
 4. 阅读并同意社区规则。
 5. 两个群组都可以发布问题。点击问题上的 **回答与公开交流**，在自己的回复栏发表回答，或直接加入已有栏目的后续交流。社区公开讨论无需等待提问者接受邀请。
 6. 也可以选择邀请提问者私聊；只有这条私人聊天路径需要对方接受。你可以在私聊中分享指南、结束连接，或屏蔽、举报成员与内容。
 
 共享指南无需登录即可阅读。切换界面语言不会改写成员发布的问题与消息，引用的指南会随界面语言切换。
+
+### Email verification on mainland China networks · 国内网络邮箱验证
+
+If an email link will not open, choose **Email link won’t open? Verify on DrFrog** in the verification panel and paste the full link from your own email. This completes verification on this site without opening the Firebase page. The site also checks verification when you return to the browser tab and refreshes sign-in after confirmation. An accepted delivery request does not guarantee inbox arrival: check the address, spam folder and sender-block settings, wait a few minutes, and then resend if needed. The resend button has a 60-second cooldown; server/provider limits still apply. Use a mailbox you can access normally on your network. QQ registration has a successful member report, which does not guarantee delivery to every mailbox. Registering with a different address creates a separate account and does not move an existing profile or messages.
+
+验证邮件中的网页打不开时，在验证面板点击 **邮件链接打不开？在本站验证**，粘贴自己邮件中的完整链接，即可通过本站验证，无需打开 Firebase 页面。返回本站标签页时也会检查验证结果，并在确认后刷新登录状态。发送请求成功不代表邮件已进入收件箱：请核对邮箱地址、检查垃圾邮件和拦截设置，等待几分钟后再重发。重发按钮有 60 秒冷却时间，服务器与邮件服务商仍有频率和额度限制。请使用当前网络能正常打开并收信的邮箱；已有成员反馈 QQ 注册成功，但这不保证每个邮箱都能收到邮件。换用其他邮箱注册会建立另一个账号，不会迁移原账号的资料或消息。
 
 ## Question discussions · 回答与公开交流
 
@@ -133,9 +139,9 @@ The requested palette is cream **#E9E0D0**, slate **#6F8097**, and terracotta **
 
 ## Validation
 
-The automated suite contains **50 tests**, including **15 public-discussion tests**. Discussion tests use fictional local members and cover independent answer columns, direct multi-member follow-ups, author participation, one-root enforcement, verified/profile access boundaries, blocking, support/resolution, retained report snapshots, moderator removals, equal-timestamp pagination, rate limits and preservation of private chat data during schema bootstrap/migration.
+The automated suite contains **58 tests**, including **15 public-discussion tests** and **8 new authentication checks**. Discussion tests use fictional local members and cover independent answer columns, direct multi-member follow-ups, author participation, one-root enforcement, verified/profile access boundaries, blocking, support/resolution, retained report snapshots, moderator removals, equal-timestamp pagination, rate limits and preservation of private chat data during schema bootstrap/migration.
 
-Automated tests cover anonymous access, incomplete onboarding, mutual participation, cross-origin writes, private offers, author-only acceptance, idempotent acceptance, participant-only messages, Chinese text, guide references, ending connections, bidirectional blocking, operator-only report review, rate limits and pagination across equal timestamps. Account tests cover secure cookies, fixed provider endpoints, session refresh, verification, recovery and abuse limits.
+Automated tests cover anonymous access, incomplete onboarding, mutual participation, cross-origin writes, private offers, author-only acceptance, idempotent acceptance, participant-only messages, Chinese text, guide references, ending connections, bidirectional blocking, operator-only report review, rate limits and pagination across equal timestamps. Account tests cover secure cookies, fixed provider endpoints, session refresh, verification, recovery and abuse limits, including bounded verification-confirmation refresh, account-identity checks and email-specific quota errors. A read-only `/api/me` verification failure can trigger one session recheck and one retry; writes are never automatically replayed.
 
 Community-feature tests cover hidden and displayed preferences across peer surfaces, bounded support choices, author-only resolution/reopening, waiting filters before pagination, anonymous member-facing experience responses, explicit publication consent, deletion/report review and retained report snapshots. They also exercise the runtime bootstrap against a database containing the original schema and records.
 

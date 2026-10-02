@@ -23,6 +23,17 @@ function upstream(verified=false){
  };
  return {fetcher,calls};
 }
+function sequencedUpstream(steps){
+ const calls=[];
+ const fetcher=async(url,options)=>{
+  const payload=options.headers['Content-Type']==='application/json'?JSON.parse(options.body):Object.fromEntries(new URLSearchParams(options.body));
+  const operation=new URL(url).pathname.split(':').at(-1),step=steps[calls.length];
+  calls.push({operation,payload});assert.ok(step,'Unexpected provider call');assert.equal(operation,step.operation);
+  if(step.payload)assert.deepEqual(payload,step.payload);
+  return Response.json(step.data,{status:step.status??200});
+ };
+ return {fetcher,calls};
+}
 test('registration uses fixed Firebase endpoints and keeps tokens only in secure host-only cookies',async t=>{
  const env=harness(t),mock=upstream();const res=await handleAuth(req('sign-up'),env,{email:'member@example.test',password:'test-password-123',language:'zh',url:'https://attacker.invalid'},mock.fetcher);
  const data=await res.json();assert.equal(data.user.emailVerified,false);assert.equal(data.user.id,'firebase:member');assert.equal(data.idToken,undefined);assert.equal(data.refreshToken,undefined);
@@ -63,6 +74,105 @@ test('session refresh preserves the existing Firebase identity and clears revoke
  const res=await handleAuth(req('session',REFRESH_COOKIE+'=refresh-token'),env,{},mock.fetcher);assert.equal((await res.json()).user.id,'firebase:member');assert.equal(mock.calls[0].payload.grant_type,'refresh_token');
  const invalid=await handleAuth(req('session',REFRESH_COOKIE+'=revoked'),env,{},async()=>Response.json({error:{message:'INVALID_REFRESH_TOKEN'}},{status:400}));assert.equal(invalid.status,401);assert.ok(invalid.headers.getSetCookie().every(c=>c.includes('Max-Age=0')));
  const anonymous=await handleAuth(req('session'),env,{},mock.fetcher);assert.equal((await anonymous.json()).user,null);
+});
+
+test('verification check replaces a pre-verification token only after an authoritative verified lookup',async t=>{
+ const env=harness(t),mock=sequencedUpstream([
+  {operation:'/v1/token',payload:{grant_type:'refresh_token',refresh_token:'old-refresh'},data:{id_token:'minted-before-verification',refresh_token:'first-rotated-refresh',expires_in:'3600'}},
+  // Verification is now visible to lookup, although the previously minted
+  // token still carries its earlier unverified state.
+  {operation:'lookup',payload:{idToken:'minted-before-verification'},data:{users:[{localId:'member',email:'member@example.test',emailVerified:true}]}},
+  {operation:'/v1/token',payload:{grant_type:'refresh_token',refresh_token:'first-rotated-refresh'},data:{id_token:'minted-after-verification',refresh_token:'confirmed-refresh',expires_in:'3599'}},
+  {operation:'lookup',payload:{idToken:'minted-after-verification'},data:{users:[{localId:'member',email:'member@example.test',emailVerified:true}]}},
+ ]);
+ const res=await handleAuth(req('session',REFRESH_COOKIE+'=old-refresh'),env,{verificationCheck:true},mock.fetcher),data=await res.json();
+ assert.equal(res.status,200);assert.deepEqual(data,{user:{id:'firebase:member',email:'member@example.test',emailVerified:true},expiresIn:3599});
+ assert.deepEqual(mock.calls.map(call=>call.operation),['/v1/token','lookup','/v1/token','lookup']);
+ assert.match(res.headers.getSetCookie()[0],/minted-after-verification/);assert.match(res.headers.getSetCookie()[1],/confirmed-refresh/);
+ assert.ok(res.headers.getSetCookie().every(value=>!value.includes('minted-before-verification')));assert.equal(data.idToken,undefined);
+});
+
+test('an unverified authoritative lookup cannot be overridden and does not trigger another refresh',async t=>{
+ const env=harness(t),mock=upstream(false);
+ const res=await handleAuth(req('session',REFRESH_COOKIE+'=refresh-token'),env,{verificationCheck:true,emailVerified:true,user:{emailVerified:true}},mock.fetcher);
+ assert.equal(res.status,200);assert.equal((await res.json()).user.emailVerified,false);assert.equal(mock.calls.length,2);
+ assert.deepEqual(mock.calls[1].payload,{idToken:'refreshed-token'});
+});
+
+test('ordinary session refresh stays single-pass and verificationCheck only accepts booleans',async t=>{
+ const env=harness(t);
+ for(const input of [{},{verificationCheck:false}]){
+  const mock=upstream(true),res=await handleAuth(req('session',REFRESH_COOKIE+'=refresh-token'),env,input,mock.fetcher);
+  assert.equal((await res.json()).user.emailVerified,true);assert.equal(mock.calls.length,2);
+ }
+ for(const verificationCheck of ['true',1,null,{},[]]){
+  await assert.rejects(()=>handleAuth(req('session',REFRESH_COOKIE+'=refresh-token'),env,{verificationCheck},()=>{throw Error('Must not fetch');}),e=>e.status===400&&e.code==='invalidInput');
+ }
+ const anonymous=await handleAuth(req('session'),env,{verificationCheck:true},()=>{throw Error('Must not fetch');});
+ assert.deepEqual(await anonymous.json(),{user:null});assert.equal(anonymous.headers.getSetCookie().length,0);
+});
+
+test('verification confirmation fails closed if the refreshed account or email changes',async t=>{
+ const env=harness(t);
+ for(const changed of [{localId:'other-member',email:'member@example.test'},{localId:'member',email:'other@example.test'}]){
+  const mock=sequencedUpstream([
+   {operation:'/v1/token',data:{id_token:'first-token',refresh_token:'first-refresh',expires_in:'3600'}},
+   {operation:'lookup',data:{users:[{localId:'member',email:'member@example.test',emailVerified:true}]}},
+   {operation:'/v1/token',data:{id_token:'changed-token',refresh_token:'changed-refresh',expires_in:'3600'}},
+   {operation:'lookup',data:{users:[{...changed,emailVerified:true}]}},
+  ]);
+  const res=await handleAuth(req('session',REFRESH_COOKIE+'=refresh-token'),env,{verificationCheck:true},mock.fetcher);
+  assert.equal(res.status,401);assert.deepEqual(await res.json(),{error:'signIn'});assert.equal(mock.calls.length,4);
+  assert.equal(res.headers.getSetCookie().length,2);assert.ok(res.headers.getSetCookie().every(value=>value.includes('Max-Age=0')));
+  assert.ok(res.headers.getSetCookie().every(value=>!value.includes('changed-token')&&!value.includes('changed-refresh')));
+ }
+});
+
+test('verification confirmation fails closed if verification is withdrawn between lookup and fresh token',async t=>{
+ const env=harness(t),mock=sequencedUpstream([
+  {operation:'/v1/token',data:{id_token:'first-token',refresh_token:'first-refresh',expires_in:'3600'}},
+  {operation:'lookup',data:{users:[{localId:'member',email:'member@example.test',emailVerified:true}]}},
+  {operation:'/v1/token',data:{id_token:'unverified-token',refresh_token:'latest-refresh',expires_in:'3600'}},
+  {operation:'lookup',data:{users:[{localId:'member',email:'member@example.test',emailVerified:false}]}},
+ ]);
+ const res=await handleAuth(req('session',REFRESH_COOKIE+'=refresh-token'),env,{verificationCheck:true},mock.fetcher);
+ assert.equal(res.status,403);assert.deepEqual(await res.json(),{error:'verifyEmail'});assert.equal(mock.calls.length,4);
+ assert.ok(res.headers.getSetCookie().every(value=>value.includes('Max-Age=0')));
+});
+
+test('revocation during the additional verification refresh clears both cookies without publishing a verified user',async t=>{
+ const env=harness(t),mock=sequencedUpstream([
+  {operation:'/v1/token',data:{id_token:'first-token',refresh_token:'first-refresh',expires_in:'3600'}},
+  {operation:'lookup',data:{users:[{localId:'member',email:'member@example.test',emailVerified:true}]}},
+  {operation:'/v1/token',data:{error:{message:'INVALID_REFRESH_TOKEN'}},status:400},
+ ]);
+ const res=await handleAuth(req('session',REFRESH_COOKIE+'=refresh-token'),env,{verificationCheck:true},mock.fetcher);
+ assert.equal(res.status,401);assert.deepEqual(await res.json(),{error:'signIn'});assert.equal(mock.calls.length,3);
+ assert.ok(res.headers.getSetCookie().every(value=>value.includes('Max-Age=0')));
+});
+
+test('disabled or removed accounts in the confirmation lookup cannot retain verified session cookies',async t=>{
+ const env=harness(t);
+ for(const users of [[],[{localId:'member',email:'member@example.test',emailVerified:true,disabled:true}]]){
+  const mock=sequencedUpstream([
+   {operation:'/v1/token',data:{id_token:'first-token',refresh_token:'first-refresh',expires_in:'3600'}},
+   {operation:'lookup',data:{users:[{localId:'member',email:'member@example.test',emailVerified:true}]}},
+   {operation:'/v1/token',data:{id_token:'second-token',refresh_token:'second-refresh',expires_in:'3600'}},
+   {operation:'lookup',data:{users}},
+  ]);
+  const res=await handleAuth(req('session',REFRESH_COOKIE+'=refresh-token'),env,{verificationCheck:true},mock.fetcher);
+  assert.equal(res.status,401);assert.deepEqual(await res.json(),{error:'signIn'});assert.equal(mock.calls.length,4);
+  assert.ok(res.headers.getSetCookie().every(value=>value.includes('Max-Age=0')));
+ }
+});
+
+test('provider email delivery quotas are distinguished from sign-in throttling without exposing credentials',async t=>{
+ const env=harness(t);
+ for(const action of ['send-verification','send-reset'])for(const code of ['QUOTA_EXCEEDED','TOO_MANY_ATTEMPTS_TRY_LATER']){
+  const mock=async(url)=>new URL(url).pathname==='/v1/token'?Response.json({id_token:'refreshed-token',refresh_token:'refresh-token',expires_in:'3600'}):Response.json({error:{message:code+' : delivery details'}},{status:400});
+  await assert.rejects(()=>handleAuth(req(action,REFRESH_COOKIE+'=refresh-token'),env,{email:'member@example.test'},mock),e=>e.status===429&&e.code==='emailDeliveryLimited'&&e.message==='emailDeliveryLimited');
+ }
+ await assert.rejects(()=>handleAuth(req('sign-in'),env,{email:'member@example.test',password:'test-password-123'},async()=>Response.json({error:{message:'TOO_MANY_ATTEMPTS_TRY_LATER'}},{status:400})),e=>e.code==='tooFast');
 });
 test('verification sends email for the current session and applies pasted codes without signing another account in',async t=>{
  const env=harness(t),mock=upstream();

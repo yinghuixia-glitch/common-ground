@@ -52,7 +52,10 @@ async function firebase(env,operation,payload,locale='en',fetcher=providerFetch)
  let data;try{data=await res.json();}catch{const error=new AuthError(503,'authUnavailable');error.diagnostic={reason:'providerInvalidResponse',status:res.status};throw error;}
  if(!res.ok){
   const code=String(data.error?.message??'').split(/[ :]/)[0];
-  const error=new AuthError(invalidSession.has(code)?401:res.status===429?429:400,errorKeys[code]??(invalidSession.has(code)?'signIn':'authUnavailable'));
+  // The delivery limit belongs to sending an email, not account access. Keep
+  // other operations' existing throttle/error handling unchanged.
+  const emailLimited=operation==='sendOobCode'&&(code==='QUOTA_EXCEEDED'||code==='TOO_MANY_ATTEMPTS_TRY_LATER');
+  const error=new AuthError(invalidSession.has(code)?401:emailLimited||res.status===429?429:400,emailLimited?'emailDeliveryLimited':errorKeys[code]??(invalidSession.has(code)?'signIn':'authUnavailable'));
   error.firebaseCode=code;
   const reason=data.error?.details?.find(d=>typeof d.reason==='string')?.reason??code;
   error.diagnostic={reason:'providerRejected',status:res.status,code:/^[A-Z_]{1,60}$/.test(reason)?reason:'UNKNOWN'};throw error;
@@ -85,6 +88,7 @@ export async function handleAuth(request,env,input,fetcher=providerFetch){
  const action=new URL(request.url).pathname.slice('/api/auth/'.length);
  if(!actions.has(action))throw new AuthError(404,'notFound');
  if(authConfig(env).provider!=='firebase')throw new AuthError(404,'notFound');
+ if(action==='session'&&input.verificationCheck!==undefined&&typeof input.verificationCheck!=='boolean')throw new AuthError(400,'invalidInput');
  if(action==='sign-out')return response({user:null},200,null,true);
  const refreshToken=cookie(request,REFRESH_COOKIE);
  if(action==='session'&&!refreshToken)return response({user:null});
@@ -97,7 +101,16 @@ export async function handleAuth(request,env,input,fetcher=providerFetch){
    return response({user,expiresIn:Number(tokens.expiresIn)||3600},200,tokens);
   }
   if(action==='session'){
-   const tokens=await refreshed(env,refreshToken,fetcher),user=await userForToken(env,tokens.idToken,fetcher);
+   let tokens=await refreshed(env,refreshToken,fetcher),user=await userForToken(env,tokens.idToken,fetcher);
+   if(input.verificationCheck===true&&user.emailVerified){
+    // accounts:lookup is authoritative but can observe verification after the
+    // first ID token was minted. Only publish the verified session after a new
+    // token is issued following that lookup. Never loop or trust client state.
+    const confirmedTokens=await refreshed(env,tokens.refreshToken,fetcher),confirmedUser=await userForToken(env,confirmedTokens.idToken,fetcher);
+    if(confirmedUser.id!==user.id||confirmedUser.email!==user.email)return response({error:'signIn'},401,null,true);
+    if(!confirmedUser.emailVerified)return response({error:'verifyEmail'},403,null,true);
+    tokens=confirmedTokens;user=confirmedUser;
+   }
    return response({user,expiresIn:Number(tokens.expiresIn)||3600},200,tokens);
   }
   if(action==='send-verification'){
@@ -123,7 +136,7 @@ export async function handleAuth(request,env,input,fetcher=providerFetch){
   // signs that user in or changes the current browser's account identity.
   return response({ok:true});
  }catch(error){
-  if(error instanceof AuthError&&invalidSession.has(error.firebaseCode))return response({error:'signIn'},401,null,true);
+  if(error instanceof AuthError&&(invalidSession.has(error.firebaseCode)||(action==='session'&&input.verificationCheck===true&&error.status===401)))return response({error:'signIn'},401,null,true);
   throw error;
  }
 }
