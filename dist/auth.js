@@ -1,4 +1,4 @@
-import {t,language} from './i18n.js?v=09f47de463e7';
+import {t,language} from './i18n.js?v=98afa691f730';
 let provider='chatgpt',user=null,expiresAt=0,pendingSession=null,changed=()=>{},firebaseDomain='',firebaseApiKey='',accountQueue=Promise.resolve(),busy=false,forcedVerification=false,nextVerificationSend=0,lastVerificationCheck=0;
 const $=id=>document.getElementById(id);
 function notice(key){$('auth-notice').textContent=t(key);$('auth-notice').dataset.key=key;}

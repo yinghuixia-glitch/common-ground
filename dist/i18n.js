@@ -1,4 +1,6 @@
 export const copy={
+"showMoreQuestion":["Show more","展开全文"],
+"showLessQuestion":["Show less","收起全文"],
 "backQuestions":["Back to questions","返回社区问题"],
 "parallelEyebrow":["MANY PERSPECTIVES, SIDE BY SIDE","不同视角，并列交流"],
 "parallelTitle":["Answers & open conversation","回答与公开交流"],
