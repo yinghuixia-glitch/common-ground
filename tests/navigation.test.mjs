@@ -1,0 +1,7 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readRoute,routeHash,defaultRoute,requiresMember} from '../public/navigation.js';
+test('new visitors start at home and completed members start in the community',()=>{assert.deepEqual(defaultRoute(false),{view:'home'});assert.deepEqual(defaultRoute(true),{view:'community'});});
+test('question links and participation intents survive route round trips',()=>{for(const hash of ['#question=preview-long-en','#ask','#respond','#conversations']){const route=readRoute(hash);assert.equal(requiresMember(route),true);assert.equal(routeHash(route),hash);}});
+test('public home and all guide/tool sections remain accessible before onboarding',()=>{for(const hash of ['#home','#community','#guide','#resources=toolbox','#resources=situations','#resources=takeaways']){const route=readRoute(hash);assert.equal(requiresMember(route),false);assert.equal(routeHash(route),hash);}});
+test('old resource links lead to the consolidated guide and invalid links cannot become routes',()=>{assert.deepEqual(readRoute('#resources'),{view:'resources',pane:'guide'});for(const hash of ['','#main','#resources=unknown','#question=','#question=%E0%A4%A','#question=..%2Fadmin','#question='+ 'x'.repeat(201)])assert.equal(readRoute(hash),null);});

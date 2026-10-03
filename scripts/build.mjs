@@ -17,8 +17,8 @@ assets['/firebase-client.js']={type:types['.js'],content:Buffer.from(client.outp
 const version=createHash('sha256').update(JSON.stringify(assets)).digest('hex').slice(0,12);
 for(const [key,asset] of Object.entries(assets)){
  if(!/\.(html|js|css)$/.test(key))continue;let content=Buffer.from(asset.content,'base64').toString('utf8');
- if(key.endsWith('.html'))content=content.replace(/(src|href)="((?:assets|fonts)\/[^"]+|(?:app|i18n|guides)\.js|(?:styles|cartoon|live|discussion|tablet)\.css)"/g,(_,attr,url)=>attr+'="'+url+'?v='+version+'"');
- if(key.endsWith('.js'))content=content.replace(/(['"])\.\/(i18n|guides|auth|firebase-client|features|campus-content|discussion)\.js\1/g,(_,quote,name)=>quote+'./'+name+'.js?v='+version+quote);
+ if(key.endsWith('.html'))content=content.replace(/(src|href)="((?:assets|fonts)\/[^"]+|(?:app|i18n|guides)\.js|(?:styles|cartoon|live|discussion|tablet|home)\.css)"/g,(_,attr,url)=>attr+'="'+url+'?v='+version+'"');
+ if(key.endsWith('.js'))content=content.replace(/(['"])\.\/(i18n|guides|auth|firebase-client|features|campus-content|discussion|navigation)\.js\1/g,(_,quote,name)=>quote+'./'+name+'.js?v='+version+quote);
  if(key.endsWith('.css'))content=content.replace(/url\("((?:fonts|assets)\/[^"]+)"\)/g,(_,url)=>'url("'+url+'?v='+version+'")');
  asset.content=Buffer.from(content).toString('base64');
 }

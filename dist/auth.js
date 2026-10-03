@@ -1,4 +1,4 @@
-import {t,language} from './i18n.js?v=98afa691f730';
+import {t,language} from './i18n.js?v=2f8e64cc5387';
 let provider='chatgpt',user=null,expiresAt=0,pendingSession=null,changed=()=>{},firebaseDomain='',firebaseApiKey='',accountQueue=Promise.resolve(),busy=false,forcedVerification=false,nextVerificationSend=0,lastVerificationCheck=0;
 const $=id=>document.getElementById(id);
 function notice(key){$('auth-notice').textContent=t(key);$('auth-notice').dataset.key=key;}
@@ -52,7 +52,7 @@ export async function initAuth(onChange){
  $('paste-verification-link').onclick=()=>{$('email-link-help').open=true;$('email-action-mode').value='verifyEmail';actionMode();$('email-action-link').focus();};
  $('verification-signout').onclick=()=>task($('verification-signout'),async()=>{await account('sign-out');forcedVerification=false;nextVerificationSend=0;$('auth-email').value='';$('auth-password').value='';await changed();openAuth();});
  document.querySelectorAll('.sign-in').forEach(link=>link.addEventListener('click',e=>{e.preventDefault();openAuth();}));
- $('sign-out').addEventListener('click',e=>{e.preventDefault();task($('sign-out'),async()=>{await account('sign-out');await changed();});});
+ $('sign-out').addEventListener('click',e=>{e.preventDefault();task($('sign-out'),async()=>{await account('sign-out');await changed({signedOut:true});});});
  $('email-action-mode').onchange=()=>{const reset=$('email-action-mode').value==='resetPassword';$('email-action-password-wrap').hidden=!reset;$('email-action-password').required=reset;};
  $('email-action-link').addEventListener('input',actionMode);
  $('email-action-form').onsubmit=e=>{e.preventDefault();task($('apply-email-link'),async()=>{

@@ -12,6 +12,14 @@ A bilingual university peer-support community for students and staff across univ
 
 © 2026 **DrFrog 创作者**。这是个人创作者的公开署名，不是独立法律主体；法律身份保存在私人项目记录中。在适用法律保护的范围内保留原创贡献的权利。网站可免费使用；项目原创材料未授予开源许可。第三方材料保留各自许可，成员内容不属于本项目所有权主张。公开 GitHub 仓库的查看、分叉权限与法定例外不受影响。本声明不确定权利份额，也不代表已完成正式登记。
 
+## Home and navigation · 首页与导航
+
+The bilingual public homepage introduces the community and offers three starting points: ask a question, respond to a question, and explore tools/guides. The same four destinations—Home, Community, Tools and Private chats—appear in the header on desktop/tablet and in a fixed bottom bar on phones. New visitors start at Home; members with completed profiles start at Community unless they opened a specific link. Login, email verification and profile completion preserve the chosen question or participation intent.
+
+Guides now sit alongside the toolbox, campus situations and member-only takeaways on the Tools page. `#home`, `#community`, `#ask`, `#respond`, `#guide`, `#resources=toolbox`, `#resources=situations`, `#resources=takeaways`, `#conversations` and `#question=<id>` support refresh and browser history. Previous `#resources` links still open the guide. This navigation does not change server access rules: the homepage contains no member posts, community data requires verified, complete profiles, and private chats remain participant-only.
+
+中英文首页提供“提出问题、回应问题、看看指南与工具”三个入口。电脑和平板使用顶部导航，手机使用固定底部导航，均包含“首页、社区、工具、私聊”。新访客默认进入首页，已完成资料的成员默认进入社区；指定链接优先。登录、邮箱验证和填写资料后，会继续进入原先选择的入口。公开首页不展示成员内容，社区与私聊沿用原有访问权限。
+
 ## Join the community
 
 1. Choose **English** or **中文** in the header.
@@ -139,10 +147,10 @@ The requested palette is cream **#E9E0D0**, slate **#6F8097**, and terracotta **
 
 ## Validation
 
-The automated suite contains **58 tests**, including **15 public-discussion tests** and **8 new authentication checks**. Discussion tests use fictional local members and cover independent answer columns, direct multi-member follow-ups, author participation, one-root enforcement, verified/profile access boundaries, blocking, support/resolution, retained report snapshots, moderator removals, equal-timestamp pagination, rate limits and preservation of private chat data during schema bootstrap/migration.
+The automated suite contains **62 tests**, including **15 public-discussion tests**, **8 new authentication checks** and **4 navigation tests**. Navigation tests cover visitor/member defaults, participation and question-link round trips, public tool routes and invalid-link rejection. Discussion tests use fictional local members and cover independent answer columns, direct multi-member follow-ups, author participation, one-root enforcement, verified/profile access boundaries, blocking, support/resolution, retained report snapshots, moderator removals, equal-timestamp pagination, rate limits and preservation of private chat data during schema bootstrap/migration.
 
 Automated tests cover anonymous access, incomplete onboarding, mutual participation, cross-origin writes, private offers, author-only acceptance, idempotent acceptance, participant-only messages, Chinese text, guide references, ending connections, bidirectional blocking, operator-only report review, rate limits and pagination across equal timestamps. Account tests cover secure cookies, fixed provider endpoints, session refresh, verification, recovery and abuse limits, including bounded verification-confirmation refresh, account-identity checks and email-specific quota errors. A read-only `/api/me` verification failure can trigger one session recheck and one retry; writes are never automatically replayed.
 
 Community-feature tests cover hidden and displayed preferences across peer surfaces, bounded support choices, author-only resolution/reopening, waiting filters before pagination, anonymous member-facing experience responses, explicit publication consent, deletion/report review and retained report snapshots. They also exercise the runtime bootstrap against a database containing the original schema and records.
 
-Earlier local browser checks covered both-language onboarding, language switching with a question draft, private offers and acceptance, private messages, guide sharing, language persistence and responsive layouts. Earlier production checks covered email signup, verification, profile completion and moderator access with the owner's account. New discussion behavior is validated with fictional local members; these earlier production checks do not certify the new discussion flow with real production members.
+Earlier local browser checks covered both-language onboarding, language switching with a question draft, private offers and acceptance, private messages, guide sharing, language persistence and responsive layouts. Homepage checks used disposable local members and mocked email services: public tools, keyboard tabs, saved routes, ask/respond shortcuts, question refresh, sign-out cleanup, login → verification → profile → original question, browser back/forward, and phone/tablet layouts including larger text and plain fonts. Earlier production checks covered email signup, verification, profile completion and moderator access with the owner's account. New discussion behavior is validated with fictional local members; these earlier production checks do not certify the new discussion flow with real production members.
