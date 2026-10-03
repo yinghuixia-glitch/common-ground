@@ -1,5 +1,5 @@
-import {language,t} from './i18n.js?v=2f8e64cc5387';
-import {toolbox,scenarios} from './campus-content.js?v=2f8e64cc5387';
+import {language,t} from './i18n.js?v=ced5fe02de0f';
+import {toolbox,scenarios} from './campus-content.js?v=ced5fe02de0f';
 
 const $=id=>document.getElementById(id);
 const make=(tag,cls,text)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(text!==undefined)node.textContent=text;return node;};

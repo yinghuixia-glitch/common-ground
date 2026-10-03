@@ -1,0 +1,133 @@
+/* Keep the ask shortcut outside the panel grid. */
+#community-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px 32px;
+  align-items: center;
+}
+#community-intro > div:first-child { min-width: 0; }
+#community-intro .community-tools {
+  margin: 0;
+  gap: 20px;
+  justify-content: flex-end;
+}
+#community-intro .community-pill {
+  border: 0;
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  text-align: right;
+  max-width: 190px;
+}
+#community-intro #quick-ask { min-height: 44px; }
+#community-view > * { min-width: 0; }
+
+.community-feed-header {
+  padding: 22px 24px;
+  border: var(--outline);
+  border-radius: 24px 24px 14px 24px;
+  background: var(--blue-paper);
+  box-shadow: 3px 4px 0 var(--ink);
+}
+.community-feed-header .section-heading {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0;
+}
+.community-feed-header h2 { margin: 12px 0 6px; }
+.community-feed-count {
+  border: 0;
+  padding: 0;
+  margin: 18px 0 0;
+}
+.community-feed-count #questions-tab {
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  min-height: 44px;
+  color: var(--ink);
+}
+.community-feed-count #questions-tab > [data-i18n] {
+  border: 0;
+  padding: 0;
+  margin: 0 5px 0 0;
+  background: none;
+  font-size: 17px;
+}
+.shared-panel .filter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px 12px;
+  margin: 22px 0;
+}
+.shared-panel .filter-row label { margin: 0; line-height: 1.5; }
+.shared-panel label[for="filter"] { grid-column: 1; grid-row: 1; }
+.shared-panel label[for="question-status"] { grid-column: 2; grid-row: 1; }
+.shared-panel #filter { grid-column: 1; grid-row: 2; }
+.shared-panel #question-status { grid-column: 2; grid-row: 2; }
+.shared-panel .filter-row select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 10px;
+}
+.shared-panel .filter-row #refresh {
+  grid-column: 3;
+  grid-row: 2;
+  margin: 0;
+  padding: 8px 4px;
+  min-height: 44px;
+}
+
+@media (min-width: 1025px) {
+  #community-intro { margin-bottom: 28px; }
+  #community-view > .shared-panel { padding-top: 0; }
+  #community-view > :is(.ask-panel, .help-panel) { padding: 22px; }
+  #community-view > :is(.ask-panel, .help-panel) h2 {
+    font-size: 24px;
+    line-height: 1.35;
+  }
+  #community-view > :is(.ask-panel, .help-panel) > .muted {
+    font-size: 17px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  #community-view .aside-tip p, #community-view .help-how p {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  html:not([data-focus="true"]) #community-view { gap: 24px; }
+}
+
+/* Wide desktop: ask left, questions in the middle, help right. */
+@media (min-width: 1200px) {
+  html:not([data-focus="true"]) #community-view {
+    grid-template-columns: minmax(250px, .85fr) minmax(0, 1.9fr) minmax(245px, .85fr);
+    grid-template-rows: auto;
+  }
+  html:not([data-focus="true"]) #community-view > .ask-panel { grid-column: 1; grid-row: 1; }
+  html:not([data-focus="true"]) #community-view > .shared-panel { grid-column: 2; grid-row: 1; }
+  html:not([data-focus="true"]) #community-view > .help-panel { grid-column: 3; grid-row: 1; }
+}
+
+@media (max-width: 1024px) {
+  #community-intro {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  #community-intro .community-tools { width: 100%; justify-content: space-between; }
+  #community-intro .community-pill { text-align: left; margin: 0; }
+}
+@media (max-width: 760px) {
+  .community-feed-header { padding: 20px; }
+  .shared-panel .filter-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .shared-panel .filter-row #refresh { grid-column: 1 / -1; grid-row: 3; justify-self: end; }
+}
+
+/* Existing reading-comfort settings continue to apply. */
+html[data-large-text="true"] #community-view > :is(.ask-panel, .help-panel) > .muted,
+html[data-large-text="true"] #community-view .aside-tip p,
+html[data-large-text="true"] #community-view .help-how p,
+html[data-large-text="true"] .community-feed-count #questions-tab > [data-i18n] { font-size: 20px; }

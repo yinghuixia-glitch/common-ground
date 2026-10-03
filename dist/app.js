@@ -1,9 +1,9 @@
-import {language,t,setLanguage,translate} from './i18n.js?v=2f8e64cc5387';
-import {guides} from './guides.js?v=2f8e64cc5387';
-import {initFeatures,preferenceChips,profilePreferences,fillPreferences,refreshSeconds} from './features.js?v=2f8e64cc5387';
-import {initDiscussion} from './discussion.js?v=2f8e64cc5387';
-import {readRoute,routeHash,defaultRoute,requiresMember} from './navigation.js?v=2f8e64cc5387';
-import {initAuth,authHeaders,refreshAuthLabels,openAuth,authProvider,recheckVerification} from './auth.js?v=2f8e64cc5387';
+import {language,t,setLanguage,translate} from './i18n.js?v=ced5fe02de0f';
+import {guides} from './guides.js?v=ced5fe02de0f';
+import {initFeatures,preferenceChips,profilePreferences,fillPreferences,refreshSeconds} from './features.js?v=ced5fe02de0f';
+import {initDiscussion} from './discussion.js?v=ced5fe02de0f';
+import {readRoute,routeHash,defaultRoute,requiresMember} from './navigation.js?v=ced5fe02de0f';
+import {initAuth,authHeaders,refreshAuthLabels,openAuth,authProvider,recheckVerification} from './auth.js?v=ced5fe02de0f';
 const $=id=>document.getElementById(id), el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
 const state={signedIn:false,profile:null,moderator:false,questions:[],helpers:[],conversations:[],active:null,messages:[],hasOlder:false,hasMore:false,view:'home',offerId:null,reportTarget:null};
 let requestedRoute=readRoute(location.hash),explicitRoute=!!requestedRoute,appReady=false,navigationEpoch=0;
