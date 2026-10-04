@@ -4,6 +4,9 @@ import {initFeatures,preferenceChips,profilePreferences,fillPreferences,refreshS
 import {initDiscussion} from './discussion.js';
 import {initWorkspace} from './workspace.js';
 import {initCampusSpaces} from './campus-spaces.js';
+import {initStudyRooms} from './study-rooms.js';
+import {initGroupAgreements} from './group-agreements.js';
+import {initUniversitySupport} from './university-support.js';
 import {initReactions} from './reactions.js';
 import {initNotifications} from './notifications.js';
 import {readRoute,routeHash,defaultRoute,requiresMember} from './navigation.js';
@@ -26,7 +29,7 @@ function questionPreview(q){
 new ResizeObserver(()=>measureQuestionPreviews()).observe($('question-feed'));
 document.fonts.ready.then(()=>measureQuestionPreviews());
 function toast(key){toastKey=key;$('toast').textContent=t(key);$('toast').style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').style.display='none',5000);}
-async function api(path,method='GET',data,verificationRetried=false){const generation=authGeneration,headers=await authHeaders();if(generation!==authGeneration)throw Error('requestCanceled');const res=await fetch('/api'+path,{method,credentials:'same-origin',cache:'no-store',headers:{...headers,...(method==='GET'?{}:{'Content-Type':'application/json','X-Common-Ground':'1'})},body:data===undefined?undefined:JSON.stringify(data)});let value;try{value=await res.json();}catch{throw Error(generation!==authGeneration?'requestCanceled':'unavailable');}if(generation!==authGeneration)throw Error('requestCanceled');if(!res.ok){if(method==='GET'&&path==='/me'&&value.error==='verifyEmail'&&!verificationRetried&&authProvider()==='firebase'){const verified=await recheckVerification();if(generation!==authGeneration)throw Error('requestCanceled');if(verified)return api(path,method,data,true);}throw Error(value.error==='questionResolved'?'questionClosed':value.error||'unavailable');}if(method==='POST'&&/^\/(?:questions\/[^/]+\/answers|answers\/[^/]+\/replies)$/.test(path))api('/notification-dispatch','POST',{}).catch(()=>{});return value;}
+async function api(path,method='GET',data,verificationRetried=false){const generation=authGeneration,publicSupport=method==='GET'&&(path==='/university-support'||path.startsWith('/university-support?')),headers=publicSupport?{}:await authHeaders();if(generation!==authGeneration)throw Error('requestCanceled');const res=await fetch('/api'+path,{method,credentials:'same-origin',cache:'no-store',headers:{...headers,...(method==='GET'?{}:{'Content-Type':'application/json','X-Common-Ground':'1'})},body:data===undefined?undefined:JSON.stringify(data)});let value;try{value=await res.json();}catch{throw Error(generation!==authGeneration?'requestCanceled':'unavailable');}if(generation!==authGeneration)throw Error('requestCanceled');if(!res.ok){if(method==='GET'&&path==='/me'&&value.error==='verifyEmail'&&!verificationRetried&&authProvider()==='firebase'){const verified=await recheckVerification();if(generation!==authGeneration)throw Error('requestCanceled');if(verified)return api(path,method,data,true);}throw Error(value.error==='questionResolved'?'questionClosed':value.error||'unavailable');}if(method==='POST'&&/^\/(?:questions\/[^/]+\/answers|answers\/[^/]+\/replies)$/.test(path))api('/notification-dispatch','POST',{}).catch(()=>{});return value;}
 function button(key,action,cls='secondary'){const b=el('button',cls,t(key));b.type='button';b.addEventListener('click',()=>run(b,action));return b;}
 async function run(control,action){if(control?.disabled)return;if(control)control.disabled=true;try{await action();}catch(e){if(e.message==='requestCanceled')return;toast(e.message);if(e.message==='signIn'||e.message==='finishOnboarding')await bootstrap(false);}finally{if(control)control.disabled=false;}}
 function bindForm(id,action){$(id).addEventListener('submit',e=>{e.preventDefault();run($(id).querySelector('button[type=submit],button:not([type])'),action);});}
@@ -74,7 +77,10 @@ const notifications=initNotifications({state,api,t,toast});
 const reactions=initReactions({state,api,run});
 const workspace=initWorkspace({state,api,run,button,toast,requireMember,confirm,navigate,onRestoreQuestion:restoreQuestionDraft,onRestoreTemplate:restoreTemplateDraft,onChanged:updateWorkspaceButtons});
 const spaces=initCampusSpaces({state,api,run,button,toast,requireMember,confirm,openReport});
-const features=initFeatures({state,api,run,button,toast,requireMember,confirm,openReport,extraPanes:{workspace,spaces},onTemplateChange:updateWorkspaceButtons,onPaneChange:pane=>{if(state.view==='resources')commitRoute({view:'resources',pane},'replace');}});
+const support=initUniversitySupport({state,api,run,button,toast,requireMember,confirm});
+const study=initStudyRooms({state,api,run,button,toast,requireMember,confirm,refreshSeconds,navigate});
+const agreements=initGroupAgreements({state,api,run,button,toast,requireMember,confirm,navigate});
+const features=initFeatures({state,api,run,button,toast,requireMember,confirm,openReport,extraPanes:{workspace,spaces,support,study,agreements},onTemplateChange:updateWorkspaceButtons,onPaneChange:pane=>{if(state.view==='resources')commitRoute({view:'resources',pane},'replace');}});
 const discussion=initDiscussion({state,api,run,button,toast,requireMember,confirm,openReport,bookmarkButton,reactionButton:reactions.button,showView:view=>view==='discussion'?displayView(view,true):showView(view),onBlocked:async()=>{features.invalidateTakeaways();await refresh(true);}});
 async function settleRoute(focus=false){await navigate(explicitRoute&&requestedRoute?requestedRoute:defaultRoute(!!state.profile),'replace',focus,explicitRoute);}
 function changeLanguage(value){setLanguage(value);if(toastKey)$('toast').textContent=t(toastKey);renderAccount();renderQuestions();renderHelpers();renderConversations();renderGuides();renderChat();features.render();discussion.render();reactions.render();notifications.render();$('profile-submit').textContent=t(state.profile?'editProfile':'saveProfile');updateWorkspaceButtons();}

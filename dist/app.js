@@ -1,13 +1,16 @@
-import {language,t,setLanguage,translate} from './i18n.js?v=ba15c37127c1';
-import {guides} from './guides.js?v=ba15c37127c1';
-import {initFeatures,preferenceChips,profilePreferences,fillPreferences,refreshSeconds} from './features.js?v=ba15c37127c1';
-import {initDiscussion} from './discussion.js?v=ba15c37127c1';
-import {initWorkspace} from './workspace.js?v=ba15c37127c1';
-import {initCampusSpaces} from './campus-spaces.js?v=ba15c37127c1';
-import {initReactions} from './reactions.js?v=ba15c37127c1';
-import {initNotifications} from './notifications.js?v=ba15c37127c1';
-import {readRoute,routeHash,defaultRoute,requiresMember} from './navigation.js?v=ba15c37127c1';
-import {initAuth,authHeaders,refreshAuthLabels,openAuth,authProvider,recheckVerification} from './auth.js?v=ba15c37127c1';
+import {language,t,setLanguage,translate} from './i18n.js?v=d15eb85b2d2d';
+import {guides} from './guides.js?v=d15eb85b2d2d';
+import {initFeatures,preferenceChips,profilePreferences,fillPreferences,refreshSeconds} from './features.js?v=d15eb85b2d2d';
+import {initDiscussion} from './discussion.js?v=d15eb85b2d2d';
+import {initWorkspace} from './workspace.js?v=d15eb85b2d2d';
+import {initCampusSpaces} from './campus-spaces.js?v=d15eb85b2d2d';
+import {initStudyRooms} from './study-rooms.js?v=d15eb85b2d2d';
+import {initGroupAgreements} from './group-agreements.js?v=d15eb85b2d2d';
+import {initUniversitySupport} from './university-support.js?v=d15eb85b2d2d';
+import {initReactions} from './reactions.js?v=d15eb85b2d2d';
+import {initNotifications} from './notifications.js?v=d15eb85b2d2d';
+import {readRoute,routeHash,defaultRoute,requiresMember} from './navigation.js?v=d15eb85b2d2d';
+import {initAuth,authHeaders,refreshAuthLabels,openAuth,authProvider,recheckVerification} from './auth.js?v=d15eb85b2d2d';
 const $=id=>document.getElementById(id), el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
 const state={signedIn:false,profile:null,moderator:false,questions:[],helpers:[],conversations:[],active:null,messages:[],hasOlder:false,hasMore:false,view:'home',offerId:null,reportTarget:null};
 let requestedRoute=readRoute(location.hash),explicitRoute=!!requestedRoute,appReady=false,navigationEpoch=0;
@@ -26,7 +29,7 @@ function questionPreview(q){
 new ResizeObserver(()=>measureQuestionPreviews()).observe($('question-feed'));
 document.fonts.ready.then(()=>measureQuestionPreviews());
 function toast(key){toastKey=key;$('toast').textContent=t(key);$('toast').style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').style.display='none',5000);}
-async function api(path,method='GET',data,verificationRetried=false){const generation=authGeneration,headers=await authHeaders();if(generation!==authGeneration)throw Error('requestCanceled');const res=await fetch('/api'+path,{method,credentials:'same-origin',cache:'no-store',headers:{...headers,...(method==='GET'?{}:{'Content-Type':'application/json','X-Common-Ground':'1'})},body:data===undefined?undefined:JSON.stringify(data)});let value;try{value=await res.json();}catch{throw Error(generation!==authGeneration?'requestCanceled':'unavailable');}if(generation!==authGeneration)throw Error('requestCanceled');if(!res.ok){if(method==='GET'&&path==='/me'&&value.error==='verifyEmail'&&!verificationRetried&&authProvider()==='firebase'){const verified=await recheckVerification();if(generation!==authGeneration)throw Error('requestCanceled');if(verified)return api(path,method,data,true);}throw Error(value.error==='questionResolved'?'questionClosed':value.error||'unavailable');}if(method==='POST'&&/^\/(?:questions\/[^/]+\/answers|answers\/[^/]+\/replies)$/.test(path))api('/notification-dispatch','POST',{}).catch(()=>{});return value;}
+async function api(path,method='GET',data,verificationRetried=false){const generation=authGeneration,publicSupport=method==='GET'&&(path==='/university-support'||path.startsWith('/university-support?')),headers=publicSupport?{}:await authHeaders();if(generation!==authGeneration)throw Error('requestCanceled');const res=await fetch('/api'+path,{method,credentials:'same-origin',cache:'no-store',headers:{...headers,...(method==='GET'?{}:{'Content-Type':'application/json','X-Common-Ground':'1'})},body:data===undefined?undefined:JSON.stringify(data)});let value;try{value=await res.json();}catch{throw Error(generation!==authGeneration?'requestCanceled':'unavailable');}if(generation!==authGeneration)throw Error('requestCanceled');if(!res.ok){if(method==='GET'&&path==='/me'&&value.error==='verifyEmail'&&!verificationRetried&&authProvider()==='firebase'){const verified=await recheckVerification();if(generation!==authGeneration)throw Error('requestCanceled');if(verified)return api(path,method,data,true);}throw Error(value.error==='questionResolved'?'questionClosed':value.error||'unavailable');}if(method==='POST'&&/^\/(?:questions\/[^/]+\/answers|answers\/[^/]+\/replies)$/.test(path))api('/notification-dispatch','POST',{}).catch(()=>{});return value;}
 function button(key,action,cls='secondary'){const b=el('button',cls,t(key));b.type='button';b.addEventListener('click',()=>run(b,action));return b;}
 async function run(control,action){if(control?.disabled)return;if(control)control.disabled=true;try{await action();}catch(e){if(e.message==='requestCanceled')return;toast(e.message);if(e.message==='signIn'||e.message==='finishOnboarding')await bootstrap(false);}finally{if(control)control.disabled=false;}}
 function bindForm(id,action){$(id).addEventListener('submit',e=>{e.preventDefault();run($(id).querySelector('button[type=submit],button:not([type])'),action);});}
@@ -74,7 +77,10 @@ const notifications=initNotifications({state,api,t,toast});
 const reactions=initReactions({state,api,run});
 const workspace=initWorkspace({state,api,run,button,toast,requireMember,confirm,navigate,onRestoreQuestion:restoreQuestionDraft,onRestoreTemplate:restoreTemplateDraft,onChanged:updateWorkspaceButtons});
 const spaces=initCampusSpaces({state,api,run,button,toast,requireMember,confirm,openReport});
-const features=initFeatures({state,api,run,button,toast,requireMember,confirm,openReport,extraPanes:{workspace,spaces},onTemplateChange:updateWorkspaceButtons,onPaneChange:pane=>{if(state.view==='resources')commitRoute({view:'resources',pane},'replace');}});
+const support=initUniversitySupport({state,api,run,button,toast,requireMember,confirm});
+const study=initStudyRooms({state,api,run,button,toast,requireMember,confirm,refreshSeconds,navigate});
+const agreements=initGroupAgreements({state,api,run,button,toast,requireMember,confirm,navigate});
+const features=initFeatures({state,api,run,button,toast,requireMember,confirm,openReport,extraPanes:{workspace,spaces,support,study,agreements},onTemplateChange:updateWorkspaceButtons,onPaneChange:pane=>{if(state.view==='resources')commitRoute({view:'resources',pane},'replace');}});
 const discussion=initDiscussion({state,api,run,button,toast,requireMember,confirm,openReport,bookmarkButton,reactionButton:reactions.button,showView:view=>view==='discussion'?displayView(view,true):showView(view),onBlocked:async()=>{features.invalidateTakeaways();await refresh(true);}});
 async function settleRoute(focus=false){await navigate(explicitRoute&&requestedRoute?requestedRoute:defaultRoute(!!state.profile),'replace',focus,explicitRoute);}
 function changeLanguage(value){setLanguage(value);if(toastKey)$('toast').textContent=t(toastKey);renderAccount();renderQuestions();renderHelpers();renderConversations();renderGuides();renderChat();features.render();discussion.render();reactions.render();notifications.render();$('profile-submit').textContent=t(state.profile?'editProfile':'saveProfile');updateWorkspaceButtons();}

@@ -1,9 +1,12 @@
+import {studyRoomsCopy} from './study-rooms-copy.js';
+import {groupAgreementsCopy} from './group-agreements-copy.js';
+import {universitySupportCopy} from './university-support-copy.js';
 import {notificationCopy} from './notification-copy.js';
 import {reactionsCopy} from './reactions-copy.js';
 import {workspaceCopy} from './workspace-copy.js';
 import {campusSpaceCopy} from './campus-spaces-copy.js';
 export const copy={
-...workspaceCopy,...campusSpaceCopy,...reactionsCopy,...notificationCopy,
+...workspaceCopy,...campusSpaceCopy,...reactionsCopy,...notificationCopy,...studyRoomsCopy,...groupAgreementsCopy,...universitySupportCopy,
 workspaceConflict:['This was updated elsewhere. Your edits are still here. Refresh My space, review the latest version and choose Edit plan before replacing it.','这份内容已在其他地方更新。你的修改仍然保留。请刷新「我的空间」并查看最新版本；若是计划，请选择「修改计划」后再决定是否替换。'],
 workspaceLimit:['Your space is full. Remove an old saved item or plan and try again.','你的空间已满，请移除旧收藏或计划后再试。'],
 workspaceDraftCleanupFailed:['Your question was posted; its saved draft is still in My space.','问题已发布，保存的草稿仍在「我的空间」中。'],
@@ -85,7 +88,7 @@ spaceRemoveReportedConfirm:['Remove this reported campus description?','移除�
  "resources":["Tools & guides","工具与指南"],
  "resourcesTitle":["Small tools for campus life","校园生活的小帮手"],
  "resourceEyebrow":["A LITTLE CLARITY, TOGETHER","一起，把事情说清楚"],
- "resourcesIntro":["Find words for a difficult message, save something for later, take one small step, or explore campus spaces.","为难开口的话找个起点，保存内容稍后继续，从一小步开始，或看看校园空间。"],
+ "resourcesIntro":["Find words for a difficult message, take a small step, find campus support, study together, or plan group work.","为难开口的话找个起点，从一小步开始，寻找校园支持、一起学习，或安排小组合作。"],
  "communicationPreferences":["How I like to communicate","我的沟通偏好"],
  "preferencesIntro":["Optional and editable. Choose what works for you; no diagnosis or explanation is needed.","可选，也可随时修改。选择适合你的方式，无需说明诊断或原因。"],
  "pref_shortReplies":["Please keep replies short","请尽量简短回复"],
@@ -203,6 +206,8 @@ spaceRemoveReportedConfirm:['Remove this reported campus description?','移除�
  footer:['Common ground is built together.','共识之地，由我们一起建立。'],footerText:['Free peer support · Individual preferences matter','免费同伴互助 · 尊重每个人的偏好'],guidelines:['Community & privacy','社区与隐私'],privacyTitle:['A little clarity before connecting','连接之前，先了解这些'],privacyText:['Use a nickname if you prefer. Members can see your profile and questions; an offer is shared only with its sender and the question’s author. A conversation is shared only with its participants. The site operator has access to stored records, including reports. Messages are not end-to-end encrypted. No diagnosis, student ID or email is stored in your community profile. University affiliations are self-reported. Use block or report when needed. You can end any connection. This is a new community; reports are not monitored continuously.','你可以使用昵称。成员可以查看你的资料与问题；帮助邀请仅对发送者与问题发布者可见，对话仅对参与者可见。网站运营者可以访问存储记录，包括举报。消息未采用端到端加密。社区资料不保存诊断、学号或邮箱。大学身份由本人填写。需要时可屏蔽或举报，也可以结束任何连接。这是一个新社区，举报并非持续实时监控。'],
  posted:['Your question is posted.','问题已发布。'],offered:['Offer sent. The author decides whether to connect.','邀请已发送，等待发布者决定是否连接。'],saved:['Profile saved.','资料已保存。'],sent:['Message sent.','消息已发送。'],signIn:['Please sign in first.','请先登录。'],finishOnboarding:['Finish your profile to continue.','请先完成个人资料。'],invalidInput:['Check your input and try again.','请检查输入后重试。'],consentRequired:['Please agree to the community guidelines.','请同意社区规则。'],unavailable:['We couldn’t reach the community. Your input is still here. Please try again.','暂时无法连接社区。你的输入仍然保留，请重试。'],badOrigin:['Refresh the page and try again.','请刷新页面后重试。'],tooFast:['Please wait a minute before trying again.','请稍等一分钟后再试。'],notFound:['This item is no longer available.','此内容已不可用。'],notAllowed:['This action is not available to your account.','你的账号无法执行此操作。'],blocked:['This connection is unavailable because a participant is blocked.','由于成员被屏蔽，此连接不可用。'],alreadyOffered:['You already offered help on this question.','你已为此问题发送过帮助邀请。'],offerClosed:['This offer has closed.','这条邀请已关闭。'],connectionEnded:['This connection has ended.','这次连接已结束。'],tooLarge:['Your message is too long.','输入内容过长。'],guideShared:['Guide shared.','指南已分享。']
 };
+copy.privacyText[0]+=' The university support directory is public. Suggestions are visible only to their author and moderators. Study rooms are listed for members; goals are private unless shared, and chat and check-ins are visible to participants. Group agreements and version history are accessible to invited members. Invitation codes grant access until expired or revoked; share them only with intended members. Operators can access stored records.';
+copy.privacyText[1]+=' 校园支持目录公开可见，纠错或补充建议仅作者与管理员可见。学习室列表对成员可见；目标默认私密，分享后才对参与者可见；聊天与打卡对室内参与者可见。小组约定及版本记录对受邀成员开放。邀请码在过期或撤销前可用于加入，请仅分享给预期成员。运营者可以访问存储记录。';
 copy.privacyText[0]+=' Likes store your account reference and show a count; no list of likers is displayed. If you enable reply emails, your verified account address is stored separately and sent to Brevo with a generic reminder link. No question, answer or profile text is included. You can turn emails off at any time.';
 copy.privacyText[1]+=' 点赞会保存账号关联并显示数量，不展示点赞成员名单。开启回复邮件后，你已验证的账号邮箱会单独保存，并连同提醒链接交由 Brevo 发送；不包含问题、回答或个人资料内容。你可以随时关闭邮件。';
 export let language=localStorage.getItem('common-ground-language')==='zh'?'zh':'en';

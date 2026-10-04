@@ -694,3 +694,10 @@ html[data-plain-font="true"] .home-path-title {
     padding: 18px;
   }
 }
+
+/* A compact tool chooser scales across desktop, tablet and phone. */
+#resources-view .resource-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;border:0;padding:0}
+#resources-view .resource-tabs button{min-width:0;min-height:52px;padding:12px 15px;border:1.5px solid var(--line);border-radius:14px;background:var(--paper);text-align:left;white-space:normal;line-height:1.3;overflow-wrap:anywhere}
+#resources-view .resource-tabs button[aria-selected=true]{background:var(--blue-paper);border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink)}
+#resources-view .resource-tabs button:focus-visible{outline:3px solid var(--ink);outline-offset:4px}
+@media(max-width:600px){#resources-view .resource-tabs{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#resources-view .resource-tabs button{font-size:16px;padding:10px;min-height:50px}}

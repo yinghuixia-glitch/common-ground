@@ -154,3 +154,64 @@ export const replyNotificationSendWindows = sqliteTable('reply_notification_send
 export const replyNotificationUnsubscribe = sqliteTable('reply_notification_unsubscribe', {
  tokenHash:text('token_hash').primaryKey(),userId:text('user_id').notNull().references(()=>profiles.id,{onDelete:'cascade'}),created:integer('created').notNull()
 },t=>[index('reply_notification_unsubscribe_user').on(t.userId,t.created)]);
+// Group agreements are shared only with invited members; edits use revisions.
+export const groupAgreements = sqliteTable('group_agreements', {
+ id:text('id').primaryKey(),ownerId:text('owner_id').notNull().references(()=>profiles.id,{onDelete:'cascade'}),
+ title:text('title').notNull(),sheetJson:text('sheet_json').notNull(),revision:integer('revision').notNull().default(1),
+ created:integer('created').notNull(),updated:integer('updated').notNull()
+});
+export const groupAgreementMembers = sqliteTable('group_agreement_members', {
+ groupId:text('group_id').notNull().references(()=>groupAgreements.id,{onDelete:'cascade'}),
+ userId:text('user_id').notNull().references(()=>profiles.id,{onDelete:'cascade'}),
+ confirmedRevision:integer('confirmed_revision'),joined:integer('joined').notNull()
+},t=>[primaryKey({columns:[t.groupId,t.userId]}),index('agreement_members_user').on(t.userId)]);
+export const groupAgreementVersions = sqliteTable('group_agreement_versions', {
+ groupId:text('group_id').notNull().references(()=>groupAgreements.id,{onDelete:'cascade'}),revision:integer('revision').notNull(),
+ sheetJson:text('sheet_json').notNull(),authorId:text('author_id').references(()=>profiles.id,{onDelete:'set null'}),created:integer('created').notNull()
+},t=>[primaryKey({columns:[t.groupId,t.revision]})]);
+export const groupAgreementInvites = sqliteTable('group_agreement_invites', {
+ id:text('id').primaryKey(),groupId:text('group_id').notNull().references(()=>groupAgreements.id,{onDelete:'cascade'}),
+ tokenHash:text('token_hash').notNull().unique(),created:integer('created').notNull(),expires:integer('expires').notNull(),revoked:integer('revoked').notNull().default(0)
+},t=>[index('agreement_invites_group').on(t.groupId,t.expires),check('group_agreement_invites_revoked',sql`${t.revoked} IN (0,1)`)]);
+export const groupAgreementWriteLimits = sqliteTable('group_agreement_write_limits', {
+ userId:text('user_id').primaryKey().references(()=>profiles.id,{onDelete:'cascade'}),windowStart:integer('window_start').notNull(),total:integer('total').notNull()
+});
+
+// Small study rooms keep private goals separate from participant chat.
+export const studyRooms = sqliteTable('study_rooms', {
+ id:text('id').primaryKey().notNull(), hostId:text('host_id').notNull().references(()=>profiles.id,{onDelete:'cascade'}),
+ title:text('title').notNull(), language:text('language').notNull(), durationMinutes:integer('duration_minutes').notNull(),
+ startsAt:integer('starts_at').notNull(), endsAt:integer('ends_at').notNull(), state:text('state').notNull().default('open'), created:integer('created').notNull()
+},t=>[index('study_rooms_created').on(t.created,t.id)]);
+export const studyParticipants = sqliteTable('study_participants', {
+ roomId:text('room_id').notNull().references(()=>studyRooms.id,{onDelete:'cascade'}),userId:text('user_id').notNull().references(()=>profiles.id,{onDelete:'cascade'}),
+ goal:text('goal').notNull().default(''),shareGoal:integer('share_goal').notNull().default(0),done:integer('done').notNull().default(0),status:text('status').notNull().default('active'),joined:integer('joined').notNull(),updated:integer('updated').notNull()
+},t=>[primaryKey({columns:[t.roomId,t.userId]}),index('study_participants_user').on(t.userId,t.roomId)]);
+export const studyMessages = sqliteTable('study_messages', {
+ id:integer('id').primaryKey({autoIncrement:true}).notNull(),roomId:text('room_id').notNull().references(()=>studyRooms.id,{onDelete:'cascade'}),authorId:text('author_id').notNull().references(()=>profiles.id,{onDelete:'cascade'}),body:text('body').notNull(),created:integer('created').notNull()
+},t=>[index('study_messages_room').on(t.roomId,t.id)]);
+export const studyReports = sqliteTable('study_reports', {
+ id:text('id').primaryKey().notNull(),reporterId:text('reporter_id').notNull().references(()=>profiles.id,{onDelete:'cascade'}),roomId:text('room_id').references(()=>studyRooms.id,{onDelete:'set null'}),messageId:integer('message_id').references(()=>studyMessages.id,{onDelete:'set null'}),
+ targetKind:text('target_kind').notNull(),targetAuthorId:text('target_author_id').references(()=>profiles.id,{onDelete:'set null'}),roomTitleSnapshot:text('room_title_snapshot').notNull(),bodySnapshot:text('body_snapshot').notNull(),reason:text('reason').notNull(),status:text('status').notNull().default('open'),created:integer('created').notNull()
+},t=>[index('study_reports_status').on(t.status,t.created,t.id)]);
+export const studyLimits = sqliteTable('study_limits', {
+ userId:text('user_id').notNull().references(()=>profiles.id,{onDelete:'cascade'}),bucket:text('bucket').notNull(),periodStart:integer('period_start').notNull(),total:integer('total').notNull()
+},t=>[primaryKey({columns:[t.userId,t.bucket]})]);
+
+// Public institutional directory; member suggestions require review.
+// Append to db/schema.ts; its existing sqliteTable/text/integer/index/profiles imports are sufficient.
+export const universitySupportServices = sqliteTable('university_support_services', {
+ id:text('id').primaryKey().notNull(),universityEn:text('university_en').notNull(),universityZh:text('university_zh').notNull(),
+ audience:text('audience').notNull(),category:text('category').notNull(),sourceUrl:text('source_url').notNull(),checkedDate:text('checked_date').notNull(),
+ officialEmail:text('official_email').notNull().default(''),enJson:text('en_json').notNull(),zhJson:text('zh_json').notNull(),
+ archived:integer('archived').notNull().default(0),created:integer('created').notNull(),updated:integer('updated').notNull()
+},t=>[index('university_support_lookup').on(t.archived,t.universityEn,t.id)]);
+export const universitySupportSuggestions = sqliteTable('university_support_suggestions', {
+ id:text('id').primaryKey().notNull(),authorId:text('author_id').notNull().references(()=>profiles.id,{onDelete:'cascade'}),
+ serviceId:text('service_id').references(()=>universitySupportServices.id,{onDelete:'set null'}),university:text('university').notNull(),
+ sourceUrl:text('source_url').notNull(),note:text('note').notNull(),status:text('status').notNull().default('pending'),
+ moderatorNote:text('moderator_note').notNull().default(''),created:integer('created').notNull(),updated:integer('updated').notNull()
+},t=>[index('university_support_suggestions_author').on(t.authorId,t.created,t.id),index('university_support_suggestions_status').on(t.status,t.created,t.id)]);
+export const universitySupportLimits = sqliteTable('university_support_limits', {
+ bucket:text('bucket').primaryKey().notNull(),hits:integer('hits').notNull(),expires:integer('expires').notNull()
+},t=>[index('university_support_limits_expires').on(t.expires)]);

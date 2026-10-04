@@ -6,6 +6,9 @@ import {ensureWorkspaceSchema,handleWorkspace} from './workspace.mjs';
 import {ensureCampusSpacesSchema,handleCampusSpaces} from './campus-spaces.mjs';
 import {ensureReactionsSchema,handleReaction,reactionCounts,reactionState} from './reactions.mjs';
 import {handleNotificationSettings,handleNotificationUnsubscribe,queueReplyNotification,flushReplyNotifications,replyEmailConfigured} from './reply-notifications.mjs';
+import {handleGroupAgreements} from './group-agreements.mjs';
+import {handleStudyRooms} from './study-rooms.mjs';
+import {handleUniversitySupport} from './university-support.mjs';
 export const TOPICS=['Communication','Studying','Campus life','Adjustments'];
 export const GUIDE_IDS=['communication','studying','sensory','adjustments','preferences'];
 class HttpError extends Error{constructor(status,code){super(code);this.status=status;this.code=code;}}
@@ -15,11 +18,11 @@ const query=(db,sql,...values)=>db.prepare(sql).bind(...values);
 const one=(db,sql,...values)=>query(db,sql,...values).first();
 const many=async(db,sql,...values)=>(await query(db,sql,...values).all()).results;
 function text(value,min,max){if(typeof value!=='string')fail(400,'invalidInput');const s=value.trim();if(s.length<min||s.length>max)fail(400,'invalidInput');return s;}
-async function body(request){
+async function body(request,maxBytes=16384){
  if(!request.headers.get('content-type')?.startsWith('application/json'))fail(415,'invalidInput');
- if(Number(request.headers.get('content-length')||0)>16384)fail(413,'tooLarge');
+ if(Number(request.headers.get('content-length')||0)>maxBytes)fail(413,'tooLarge');
  const reader=request.body?.getReader();if(!reader)fail(400,'invalidInput');const chunks=[];let size=0;
- for(;;){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>16384){await reader.cancel();fail(413,'tooLarge');}chunks.push(value);}
+ for(;;){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>maxBytes){await reader.cancel();fail(413,'tooLarge');}chunks.push(value);}
  const data=new Uint8Array(size);let offset=0;for(const part of chunks){data.set(part,offset);offset+=part.length;}
  try{const parsed=JSON.parse(new TextDecoder().decode(data));if(!parsed||Array.isArray(parsed)||typeof parsed!=='object')fail(400,'invalidInput');return parsed;}catch(e){if(e instanceof HttpError)throw e;fail(400,'invalidInput');}
 }
@@ -53,6 +56,7 @@ export async function handleApi(request,env,ctx){
    if(method!=='POST')fail(405,'notAllowed');
    return await handleAuth(request,env,await body(request));
   }
+  if(path==='/api/university-support'&&method==='GET')return await handleUniversitySupport(request,url,null,{db,body,text,fail,json,one,many,query,blocked,moderator:false});
   const user=await authenticatedUser(request,env),id=user?.id??null;
   if(id){await ensureCommunitySchema(db);await ensurePublicAnswersSchema(db);}
   if(path==='/api/me'&&method==='GET'){
@@ -75,6 +79,9 @@ export async function handleApi(request,env,ctx){
    return json({profile:await profile(db,id)});
   }
   const me=await profile(db,id);
+  if(path==='/api/study-rooms'||path.startsWith('/api/study-rooms/')||path==='/api/study-reports'||path.startsWith('/api/study-reports/'))return await handleStudyRooms(request,url,id,{db,body,text,fail,json,one,many,query,blocked,moderator:moderator(user,env)});
+  if(path.startsWith('/api/university-support/'))return await handleUniversitySupport(request,url,id,{db,body,text,fail,json,one,many,query,blocked,moderator:moderator(user,env)});
+  if(path==='/api/group-agreements'||path.startsWith('/api/group-agreements/'))return await handleGroupAgreements(request,url,id,{db,body:request=>body(request,32768),text,fail,json,one,many,query,blocked,moderator:moderator(user,env)});
   if(path==='/api/notification-settings')return await handleNotificationSettings(request,url,user,me,{env,db,body,fail,json});
   if(path==='/api/notification-dispatch'&&method==='POST'){if(Object.keys(await body(request)).length)fail(400,'invalidInput');if(replyEmailConfigured(env))background(ctx,flushReplyNotifications(env,{limit:1}));return json({ok:true});}
   const reactionMatch=path.match(/^\/api\/(questions|answers)\/([^/]+)\/likes$/);

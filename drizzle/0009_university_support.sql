@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS university_support_services (id TEXT PRIMARY KEY NOT NULL,university_en TEXT NOT NULL,university_zh TEXT NOT NULL,audience TEXT NOT NULL,category TEXT NOT NULL,source_url TEXT NOT NULL,checked_date TEXT NOT NULL,official_email TEXT NOT NULL DEFAULT '',en_json TEXT NOT NULL,zh_json TEXT NOT NULL,archived INTEGER NOT NULL DEFAULT 0,created INTEGER NOT NULL,updated INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS university_support_lookup ON university_support_services(archived,university_en,id);
+CREATE TABLE IF NOT EXISTS university_support_suggestions (id TEXT PRIMARY KEY NOT NULL,author_id TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,service_id TEXT REFERENCES university_support_services(id) ON DELETE SET NULL,university TEXT NOT NULL,source_url TEXT NOT NULL,note TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'pending',moderator_note TEXT NOT NULL DEFAULT '',created INTEGER NOT NULL,updated INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS university_support_suggestions_author ON university_support_suggestions(author_id,created,id);
+CREATE INDEX IF NOT EXISTS university_support_suggestions_status ON university_support_suggestions(status,created,id);
+CREATE TABLE IF NOT EXISTS university_support_limits (bucket TEXT PRIMARY KEY NOT NULL,hits INTEGER NOT NULL,expires INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS university_support_limits_expires ON university_support_limits(expires);

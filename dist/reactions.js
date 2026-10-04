@@ -1,4 +1,4 @@
-import {t as translate} from './i18n.js?v=ba15c37127c1';
+import {t as translate} from './i18n.js?v=d15eb85b2d2d';
 
 // A server count is shared between every visible instance of the same item.
 // Mutations update only these controls and leave question/reply editors intact.

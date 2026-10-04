@@ -1,4 +1,4 @@
-const panes=new Set(['guide','toolbox','situations','takeaways','workspace','spaces']);
+const panes=new Set(['guide','toolbox','situations','takeaways','workspace','spaces','support','study','agreements']);
 export function readRoute(hash){
  if(hash==='#home')return {view:'home'};
  if(hash==='#community')return {view:'community'};
