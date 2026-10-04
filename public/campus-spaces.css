@@ -1,0 +1,47 @@
+/* Member descriptions of campus environments, using the shared DrFrog palette. */
+#spaces-pane{min-width:0}
+.space-intro{max-width:900px;margin:24px 0 28px}
+.space-intro h3{font-size:clamp(25px,2.5vw,34px);line-height:1.35;margin:10px 0}
+.space-intro>p:not(.eyebrow){line-height:1.65}
+.space-notice{padding:13px 17px;border:1.5px dashed var(--line);border-radius:15px;background:var(--paper)}
+.space-layout{display:grid;grid-template-columns:minmax(300px,.82fr) minmax(0,1.5fr);gap:28px;align-items:start}
+.space-layout>*{min-width:0}
+.space-share{border-radius:24px 24px 12px 24px}
+.space-share>h3{margin-top:0;font-size:24px}
+#spaces-pane fieldset{border:0;margin:0;padding:0;min-width:0}
+#spaces-pane .space-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}
+#spaces-pane .space-pair>*{min-width:0}
+#spaces-pane :is(input,select,button){min-height:44px}
+#spaces-pane .checkbox input{min-height:0;width:20px;height:20px;flex:0 0 20px;margin-top:3px}
+#spaces-pane .checkbox{align-items:flex-start;line-height:1.5;gap:10px}
+#spaces-pane .checkbox span{min-width:0;overflow-wrap:anywhere}
+#space-description{min-height:140px}
+.space-feed-heading{display:flex;gap:16px;justify-content:space-between;align-items:center;margin-bottom:18px;padding:17px 20px;background:var(--blue-paper);border:var(--outline);border-radius:18px 18px 18px 8px;box-shadow:3px 4px 0 var(--ink)}
+.space-feed-heading h3{margin:0;font-size:24px}
+.space-feed-heading>button{flex-shrink:0}
+.space-filters{padding:0 1px;margin-bottom:24px}
+.space-filters label{margin-top:0}
+.space-filter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:16px 0}
+.space-filter-grid>*{min-width:0}
+.space-filters>fieldset>.resource-actions{margin-top:16px}
+.space-card{margin-bottom:22px;padding:22px;border-radius:22px 22px 22px 10px;overflow-wrap:anywhere}
+.space-card:nth-child(2n){border-radius:22px 22px 10px 22px}
+.space-card-heading>.chip{display:inline-block;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.space-card-heading h3{font-size:24px;margin:12px 0 9px;line-height:1.4}
+.space-observation{margin:0 0 18px}
+.space-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65;margin:0 0 20px}
+.space-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0}
+.space-detail{min-width:0;padding:9px 12px;border-radius:12px;background:#eee5d8;border:1px solid var(--line)}
+.space-detail dt{font-size:14px;color:var(--muted);margin-bottom:2px}
+.space-detail dd{font-size:16px;margin:0;line-height:1.5}
+.space-author{margin:20px 0 0}
+.space-card-actions{padding-top:12px;margin-top:12px;border-top:1.5px dashed var(--line)}
+#space-more{margin-top:0}
+html[data-large-text=true] .space-detail dd{font-size:20px}
+html[data-large-text=true] .space-detail dt{font-size:17px}
+@media(min-width:1200px){.space-layout{grid-template-columns:minmax(340px,.78fr) minmax(0,1.5fr)}.space-facts{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:1024px){.space-layout{grid-template-columns:1fr}.space-share{max-width:none}.space-share>form>fieldset{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px}.space-share>form>fieldset>:is(label,textarea,input,.checkbox,button){grid-column:1/-1}.space-feed-heading{margin-top:6px}}
+@media(max-width:600px){.space-intro{margin:20px 0}.space-intro h3{font-size:27px}.space-layout{gap:24px}.space-share,.space-card{padding:19px}.space-share>form>fieldset{display:block}.space-feed-heading{align-items:flex-start;gap:10px;padding:15px}.space-feed-heading h3{font-size:23px}.space-feed-heading>button{font-size:15px;padding:8px}.space-filter-grid{grid-template-columns:1fr;gap:13px}.space-card-heading h3{font-size:23px}.space-detail{padding:9px}.space-detail dd{font-size:15px}.space-notice{padding:12px}.space-filters>fieldset>.resource-actions>*{width:100%}}
+@media(max-width:360px){#spaces-pane .space-pair{grid-template-columns:1fr}.space-feed-heading{flex-wrap:wrap}.space-facts{grid-template-columns:1fr}}
+
+.space-share{grid-column:1;grid-row:1}.space-browse{grid-column:2;grid-row:1}#space-share-shortcut{margin-bottom:24px}@media(max-width:1024px){.space-browse{grid-column:1;grid-row:1}.space-share{grid-column:1;grid-row:2}}
