@@ -1,10 +1,10 @@
-import {studyRoomsCopy} from './study-rooms-copy.js?v=d15eb85b2d2d';
-import {groupAgreementsCopy} from './group-agreements-copy.js?v=d15eb85b2d2d';
-import {universitySupportCopy} from './university-support-copy.js?v=d15eb85b2d2d';
-import {notificationCopy} from './notification-copy.js?v=d15eb85b2d2d';
-import {reactionsCopy} from './reactions-copy.js?v=d15eb85b2d2d';
-import {workspaceCopy} from './workspace-copy.js?v=d15eb85b2d2d';
-import {campusSpaceCopy} from './campus-spaces-copy.js?v=d15eb85b2d2d';
+import {studyRoomsCopy} from './study-rooms-copy.js?v=56705894646a';
+import {groupAgreementsCopy} from './group-agreements-copy.js?v=56705894646a';
+import {universitySupportCopy} from './university-support-copy.js?v=56705894646a';
+import {notificationCopy} from './notification-copy.js?v=56705894646a';
+import {reactionsCopy} from './reactions-copy.js?v=56705894646a';
+import {workspaceCopy} from './workspace-copy.js?v=56705894646a';
+import {campusSpaceCopy} from './campus-spaces-copy.js?v=56705894646a';
 export const copy={
 ...workspaceCopy,...campusSpaceCopy,...reactionsCopy,...notificationCopy,...studyRoomsCopy,...groupAgreementsCopy,...universitySupportCopy,
 workspaceConflict:['This was updated elsewhere. Your edits are still here. Refresh My space, review the latest version and choose Edit plan before replacing it.','这份内容已在其他地方更新。你的修改仍然保留。请刷新「我的空间」并查看最新版本；若是计划，请选择「修改计划」后再决定是否替换。'],

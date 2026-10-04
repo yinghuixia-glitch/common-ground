@@ -1,6 +1,6 @@
-import {language,t} from './i18n.js?v=d15eb85b2d2d';
-import {toolbox} from './campus-content.js?v=d15eb85b2d2d';
-import {calendarForPlan,parseReminder,localDateTime} from './workspace-calendar.js?v=d15eb85b2d2d';
+import {language,t} from './i18n.js?v=56705894646a';
+import {toolbox} from './campus-content.js?v=56705894646a';
+import {calendarForPlan,parseReminder,localDateTime} from './workspace-calendar.js?v=56705894646a';
 const $=id=>document.getElementById(id);
 const make=(tag,cls,text)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(text!==undefined)node.textContent=text;return node;};
 const templateKey=(id,lang)=>'template:'+id+':'+lang;

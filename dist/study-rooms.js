@@ -1,5 +1,5 @@
-import {language,t} from './i18n.js?v=d15eb85b2d2d';
-import {studyRoomsCopy} from './study-rooms-copy.js?v=d15eb85b2d2d';
+import {language,t} from './i18n.js?v=56705894646a';
+import {studyRoomsCopy} from './study-rooms-copy.js?v=56705894646a';
 const $=id=>document.getElementById(id);
 const make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
 const c=key=>studyRoomsCopy[key]?.[language==='zh'?1:0]??t(key);
@@ -51,5 +51,6 @@ export function initStudyRooms({state,api,run,button,toast,requireMember,confirm
  setInterval(()=>{if(active())updateClock();},1000);
  setInterval(()=>{const preference=refreshSeconds();if(!active()||!state.profile||writing||listLoading||preference===0)return;const seconds=Math.max(30,Math.min(60,preference||60));if(Date.now()-lastPoll<seconds*1000)return;lastPoll=Date.now();refreshAll().catch(()=>{});},5000);
  document.addEventListener('visibilitychange',()=>{if(active()){updateClock();render();}});
+ $('comfort-dialog')?.addEventListener('close',()=>{if(active())render();});
  render();return {render,memberChanged,resetMembers,invalidate};
 }
