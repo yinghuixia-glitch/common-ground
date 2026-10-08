@@ -23,6 +23,12 @@ async function ensureRateTable(db){
 
 function field(value,min,max){if(typeof value!=='string'||value.length<min||value.length>max)throw new AuthError(400,'invalidInput');return value;}
 function email(value){const s=field(value,3,254).trim();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s))throw new AuthError(400,'invalidInput');return s;}
+function signupSessionIncomplete(detail){
+ const error=new AuthError(503,'accountCreatedSignin');
+ error.diagnostic={reason:'signupSessionIncomplete',detail};
+ return error;
+}
+function sessionTokens(value){return value&&['idToken','refreshToken'].every(key=>typeof value[key]==='string'&&value[key].trim().length>0&&value[key].length<=12000);}
 function cookieHeader(name,value,maxAge){return `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Lax`;}
 function response(data,status=200,tokens=null,clear=false){
  const headers=new Headers({'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'});
@@ -49,7 +55,12 @@ async function firebase(env,operation,payload,locale='en',fetcher=providerFetch)
  // workerd rejects redirect:'error'. Manual mode plus rejecting all 3xx
  // preserves the same protection: credentials never follow a redirect.
  if(res.status>=300&&res.status<400){const error=new AuthError(503,'authUnavailable');error.diagnostic={reason:'providerRedirectRejected',status:res.status};throw error;}
- let data;try{data=await res.json();}catch{const error=new AuthError(503,'authUnavailable');error.diagnostic={reason:'providerInvalidResponse',status:res.status};throw error;}
+ let data;try{data=await res.json();}catch{
+  // A successful signUp status can already have created the account even if
+  // its response is unreadable. Never repeat that write or infer a session.
+  if(operation==='signUp'&&res.ok)throw signupSessionIncomplete('providerPayloadInvalid');
+  const error=new AuthError(503,'authUnavailable');error.diagnostic={reason:'providerInvalidResponse',status:res.status};throw error;
+ }
  if(!res.ok){
   const code=String(data.error?.message??'').split(/[ :]/)[0];
   // The delivery limit belongs to sending an email, not account access. Keep
@@ -96,8 +107,16 @@ export async function handleAuth(request,env,input,fetcher=providerFetch){
  try{
   if(action==='sign-in'||action==='sign-up'){
    const tokens=await firebase(env,action==='sign-in'?'signInWithPassword':'signUp',{email:email(input.email),password:field(input.password,action==='sign-up'?8:1,128),returnSecureToken:true},input.language,fetcher);
-   if(!tokens.idToken||!tokens.refreshToken)throw new AuthError(503,'authUnavailable');
-   const user=await userForToken(env,tokens.idToken,fetcher);
+   if(!sessionTokens(tokens))throw action==='sign-up'?signupSessionIncomplete('providerPayloadInvalid'):new AuthError(503,'authUnavailable');
+   let user;
+   try{user=await userForToken(env,tokens.idToken,fetcher);}
+   catch(error){
+    // Account creation and session establishment are separate. Preserve a
+    // useful recovery message, without publishing tokens or trusting signup
+    // fields as proof of verification or bypassing the lookup requirement.
+    if(action==='sign-up')throw signupSessionIncomplete('accountLookupFailed');
+    throw error;
+   }
    return response({user,expiresIn:Number(tokens.expiresIn)||3600},200,tokens);
   }
   if(action==='session'){
@@ -136,7 +155,7 @@ export async function handleAuth(request,env,input,fetcher=providerFetch){
   // signs that user in or changes the current browser's account identity.
   return response({ok:true});
  }catch(error){
-  if(error instanceof AuthError&&(invalidSession.has(error.firebaseCode)||(action==='session'&&input.verificationCheck===true&&error.status===401)))return response({error:'signIn'},401,null,true);
+  if(error instanceof AuthError&&error.code!=='accountCreatedSignin'&&(invalidSession.has(error.firebaseCode)||(action==='session'&&input.verificationCheck===true&&error.status===401)))return response({error:'signIn'},401,null,true);
   throw error;
  }
 }

@@ -1,11 +1,18 @@
-import {studyRoomsCopy} from './study-rooms-copy.js?v=56705894646a';
-import {groupAgreementsCopy} from './group-agreements-copy.js?v=56705894646a';
-import {universitySupportCopy} from './university-support-copy.js?v=56705894646a';
-import {notificationCopy} from './notification-copy.js?v=56705894646a';
-import {reactionsCopy} from './reactions-copy.js?v=56705894646a';
-import {workspaceCopy} from './workspace-copy.js?v=56705894646a';
-import {campusSpaceCopy} from './campus-spaces-copy.js?v=56705894646a';
+import {studyRoomsCopy} from './study-rooms-copy.js?v=4eda247d0747';
+import {groupAgreementsCopy} from './group-agreements-copy.js?v=4eda247d0747';
+import {universitySupportCopy} from './university-support-copy.js?v=4eda247d0747';
+import {notificationCopy} from './notification-copy.js?v=4eda247d0747';
+import {reactionsCopy} from './reactions-copy.js?v=4eda247d0747';
+import {workspaceCopy} from './workspace-copy.js?v=4eda247d0747';
+import {campusSpaceCopy} from './campus-spaces-copy.js?v=4eda247d0747';
 export const copy={
+ authErrorReference:['Help code: {code}. Share this code if the problem continues.','排查代码：{code}。如果问题持续，请反馈这个代码。'],
+ authBrowserUnsupported:['This browser cannot complete sign-in. Open DrFrog in an updated Safari, Chrome or Edge browser.','当前浏览器无法完成登录。请用更新后的 Safari、Chrome 或 Edge 浏览器打开本站。'],
+ authConnectionProblem:['We couldn’t connect to sign-in. Wait briefly and try again. If you are using an in-app browser, open DrFrog in your phone’s browser.','未能连接登录服务，请稍等后重试。如果是在微信等应用内打开，请改用手机自带浏览器打开本站。'],
+ authResponseProblem:['We couldn’t read the sign-in response. Refresh the page and try again.','未能读取登录服务的响应，请刷新页面后重试。'],
+ registrationUnconfirmed:['We couldn’t confirm whether registration succeeded. Wait briefly, then try Sign in with the same email and password before registering again.','暂时无法确认注册是否成功。请稍等片刻，先用同一邮箱和密码尝试「登录」，避免重复注册。'],
+ accountCreatedSignin:['Registration received a success response, but sign-in could not be completed. Try Sign in with the same email and password before registering again.','注册服务已返回成功响应，但未能完成登录。请先用同一邮箱和密码尝试「登录」，避免重复注册。'],
+ accountCreatedVerificationProblem:['Your account was created, but the verification email request could not be completed. Use Resend verification email below after waiting briefly. You do not need to register again.','账号已创建，但验证邮件发送请求未能完成。请稍等后使用下方「重新发送验证邮件」，无需重新注册。'],
 ...workspaceCopy,...campusSpaceCopy,...reactionsCopy,...notificationCopy,...studyRoomsCopy,...groupAgreementsCopy,...universitySupportCopy,
 workspaceConflict:['This was updated elsewhere. Your edits are still here. Refresh My space, review the latest version and choose Edit plan before replacing it.','这份内容已在其他地方更新。你的修改仍然保留。请刷新「我的空间」并查看最新版本；若是计划，请选择「修改计划」后再决定是否替换。'],
 workspaceLimit:['Your space is full. Remove an old saved item or plan and try again.','你的空间已满，请移除旧收藏或计划后再试。'],

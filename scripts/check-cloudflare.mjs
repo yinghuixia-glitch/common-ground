@@ -10,7 +10,9 @@ try{
  const forged=await worker.fetch(new Request(base+'/api/me',{headers:{'oai-authenticated-user-id':'owner','oai-authenticated-user-email':'owner@example.test'}}),env);assert.equal((await forged.json()).signedIn,false);
  const page=await worker.fetch(new Request(base+'/'),env);assert.equal(page.status,200);assert.match(page.headers.get('content-security-policy'),/connect-src 'self';/);
  const html=await page.text();assert.doesNotMatch(html,/signin-with-chatgpt/);assert.match(html,/data-i18n="emailWelcome"/);
- const auth=await worker.fetch(new Request(base+'/auth.js'),env);const authSource=await auth.text();assert.match(authSource,/\/api\/auth\//);assert.doesNotMatch(authSource,/import\('.\/firebase-client/);
+ const auth=await worker.fetch(new Request(base+'/auth.js'),env);const authSource=await auth.text();assert.doesNotMatch(authSource,/import\('.\/firebase-client/);
+ const transportImport=authSource.match(/['"]\.\/(auth-request\.js\?v=[a-f0-9]{12})['"]/);assert.ok(transportImport,'The versioned auth transport must be included');
+ const transport=await worker.fetch(new Request(base+'/'+transportImport[1]),env);assert.equal(transport.status,200);const transportSource=await transport.text();assert.match(transportSource,/\/api\/auth\//);
  const session=await worker.fetch(new Request(base+'/api/auth/session',{method:'POST',headers:{Origin:base,'Content-Type':'application/json','X-Common-Ground':'1'},body:'{}'}),env);assert.deepEqual(await session.json(),{user:null});
  const sdk=await worker.fetch(new Request(base+'/firebase-client.js'),env);assert.equal(sdk.status,200);assert.match(await sdk.text(),/sendEmailVerification/);
  console.log('Cloudflare bundle verified: Firebase required; forged platform headers ignored; first-party account requests and self-only connection policy available.');

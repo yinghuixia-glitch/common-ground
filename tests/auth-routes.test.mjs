@@ -41,6 +41,61 @@ test('registration uses fixed Firebase endpoints and keeps tokens only in secure
  assert.equal(res.headers.get('cache-control'),'no-store');assert.ok(mock.calls.every(c=>new URL(c.url).hostname==='identitytoolkit.googleapis.com'));assert.equal(mock.calls[0].payload.url,undefined);
  assert.equal(mock.calls[0].payload.password,'test-password-123');assert.equal((await env.DB.prepare('SELECT COUNT(*) AS n FROM profiles').first()).n,0);
 });
+test('acknowledged signup followed by a lookup network failure exposes only a recovery code and never retries creation',async t=>{
+ const env=harness(t),original=globalThis.fetch,calls=[],input={email:'member@example.test',password:'test-password-123'};
+ globalThis.fetch=async(url)=>{
+  const operation=new URL(url).pathname.split(':').at(-1);calls.push(operation);
+  if(operation==='signUp')return Response.json({idToken:'private-id-token',refreshToken:'private-refresh-token',expiresIn:'3600',emailVerified:true});
+  throw Error('private-id-token private-refresh-token member@example.test test-password-123 provider body');
+ };
+ try{
+  const result=await handleApi(new Request(req('sign-up'),{body:JSON.stringify(input)}),env);
+  assert.equal(result.status,503);assert.deepEqual(await result.json(),{error:'accountCreatedSignin',diagnostic:{reason:'signupSessionIncomplete',detail:'accountLookupFailed'}});
+  assert.deepEqual(result.headers.getSetCookie(),[]);assert.deepEqual(calls,['signUp','lookup']);
+  assert.equal((await env.DB.prepare('SELECT COUNT(*) AS n FROM profiles').first()).n,0);
+ }finally{globalThis.fetch=original;}
+});
+test('successful signup with unusable tokens or invalid JSON cannot establish a session and offers sign-in recovery',async t=>{
+ const env=harness(t),original=globalThis.fetch,input={email:'member@example.test',password:'test-password-123'};
+ const payloads=[null,{},[],{idToken:12,refreshToken:'private-refresh-token'},{idToken:'private-id-token',refreshToken:{}},{idToken:' ',refreshToken:'private-refresh-token'},{idToken:'x'.repeat(12001),refreshToken:'private-refresh-token'},'invalid-json'];
+ try{
+  for(const payload of payloads){
+   let calls=0;globalThis.fetch=async(url)=>{calls++;assert.ok(new URL(url).pathname.endsWith(':signUp'));return payload==='invalid-json'?new Response('not JSON',{status:200}):Response.json(payload);};
+   const result=await handleApi(new Request(req('sign-up'),{body:JSON.stringify(input)}),env);
+   assert.equal(result.status,503);assert.deepEqual(await result.json(),{error:'accountCreatedSignin',diagnostic:{reason:'signupSessionIncomplete',detail:'providerPayloadInvalid'}});
+   assert.deepEqual(result.headers.getSetCookie(),[]);assert.equal(calls,1);
+  }
+ }finally{globalThis.fetch=original;}
+});
+test('signup lookup rejection or missing identity preserves partial-success recovery instead of a revoked-session response',async t=>{
+ const env=harness(t);
+ for(const step of [
+  {operation:'lookup',data:{error:{message:'INVALID_ID_TOKEN : private provider details'}},status:400},
+  {operation:'lookup',data:{error:{message:'USER_DISABLED'}},status:400},
+  {operation:'lookup',data:{users:[]}},
+  {operation:'lookup',data:{users:[{localId:'member',email:'member@example.test',disabled:true,emailVerified:true}]}},
+  {operation:'lookup',data:null},
+ ]){
+  const mock=sequencedUpstream([{operation:'signUp',data:{idToken:'private-id-token',refreshToken:'private-refresh-token',expiresIn:'3600',emailVerified:true}},step]);
+  await assert.rejects(()=>handleAuth(req('sign-up'),env,{email:'member@example.test',password:'test-password-123'},mock.fetcher),error=>{
+   assert.equal(error.status,503);assert.equal(error.code,'accountCreatedSignin');assert.equal(error.firebaseCode,undefined);
+   assert.deepEqual(error.diagnostic,{reason:'signupSessionIncomplete',detail:'accountLookupFailed'});return true;
+  });
+  assert.deepEqual(mock.calls.map(call=>call.operation),['signUp','lookup']);
+ }
+});
+test('signup acknowledgement alone never supplies verification state and provider rejection remains an ordinary signup error',async t=>{
+ const env=harness(t),mock=sequencedUpstream([
+  {operation:'signUp',data:{idToken:'id-token',refreshToken:'refresh-token',expiresIn:'3600',emailVerified:true,localId:'untrusted-signup-id',email:'untrusted@example.test'}},
+  {operation:'lookup',data:{users:[{localId:'member',email:'member@example.test',emailVerified:false}]}},
+ ]);
+ const result=await handleAuth(req('sign-up'),env,{email:'member@example.test',password:'test-password-123'},mock.fetcher);
+ assert.deepEqual((await result.json()).user,{id:'firebase:member',email:'member@example.test',emailVerified:false});
+ for(const [code,key] of [['EMAIL_EXISTS','emailInUse'],['TOO_MANY_ATTEMPTS_TRY_LATER','tooFast'],['OPERATION_NOT_ALLOWED','authUnavailable']]){
+  let calls=0;await assert.rejects(()=>handleAuth(req('sign-up'),env,{email:'member@example.test',password:'test-password-123'},async()=>{calls++;return Response.json({error:{message:code}},{status:400});}),error=>error.code===key&&error.code!=='accountCreatedSignin');assert.equal(calls,1);
+ }
+ let calls=0;await assert.rejects(()=>handleAuth(req('sign-up'),env,{email:'member@example.test',password:'test-password-123'},async()=>{calls++;throw Error('network before acknowledged signup');}),error=>error.code==='authUnavailable');assert.equal(calls,1);
+});
 test('the first account request can bootstrap only the new counter table without changing existing profiles',async t=>{
  const env=harness(t),mock=upstream();
  await env.DB.prepare('DROP TABLE auth_limits').run();

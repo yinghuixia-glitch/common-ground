@@ -1,5 +1,5 @@
-import {language,t} from './i18n.js?v=56705894646a';
-import {studyRoomsCopy} from './study-rooms-copy.js?v=56705894646a';
+import {language,t} from './i18n.js?v=4eda247d0747';
+import {studyRoomsCopy} from './study-rooms-copy.js?v=4eda247d0747';
 const $=id=>document.getElementById(id);
 const make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
 const c=key=>studyRoomsCopy[key]?.[language==='zh'?1:0]??t(key);

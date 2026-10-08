@@ -1,16 +1,14 @@
 import {t,language} from './i18n.js';
+import {authRequest,registrationVerification,safeAuthReference} from './auth-request.js';
 let provider='chatgpt',user=null,expiresAt=0,pendingSession=null,changed=()=>{},firebaseDomain='',firebaseApiKey='',accountQueue=Promise.resolve(),busy=false,forcedVerification=false,nextVerificationSend=0,lastVerificationCheck=0;
 const $=id=>document.getElementById(id);
-function notice(key){$('auth-notice').textContent=t(key);$('auth-notice').dataset.key=key;}
+function notice(key,reference=''){const node=$('auth-notice');node.dataset.key=key;node.dataset.reference=safeAuthReference(reference);node.textContent=t(key)+(node.dataset.reference?' '+t('authErrorReference').replace('{code}',node.dataset.reference):'');}
 function refreshSendButton(){const button=$('resend-verification'),remaining=Math.max(0,Math.ceil((nextVerificationSend-Date.now())/1000));button.disabled=busy||remaining>0;button.textContent=remaining?t('resendCountdown').replace('{seconds}',remaining):t('resendVerification');}
-async function task(button,action){if(busy||button.disabled)return;busy=true;const controls=[...$('auth-dialog').querySelectorAll('button')],disabled=controls.map(control=>control.disabled);for(const control of controls)control.disabled=true;button.disabled=true;$('auth-dialog').setAttribute('aria-busy','true');try{await action();}catch(e){notice(e.message||'authUnavailable');}finally{busy=false;controls.forEach((control,index)=>control.disabled=disabled[index]);button.disabled=false;$('auth-dialog').removeAttribute('aria-busy');refreshSendButton();}}
+async function task(button,action){if(busy||button.disabled)return;busy=true;const controls=[...$('auth-dialog').querySelectorAll('button')],disabled=controls.map(control=>control.disabled);for(const control of controls)control.disabled=true;button.disabled=true;$('auth-dialog').setAttribute('aria-busy','true');try{await action();}catch(e){notice(e.message||'authUnavailable',e.reference);}finally{busy=false;controls.forEach((control,index)=>control.disabled=disabled[index]);button.disabled=false;$('auth-dialog').removeAttribute('aria-busy');refreshSendButton();}}
 function account(action,data={}){const result=accountQueue.then(()=>requestAccount(action,data));accountQueue=result.catch(()=>{});return result;}
 async function requestAccount(action,data){
- let res,value;
- try{res=await fetch('/api/auth/'+action,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json','X-Common-Ground':'1'},body:JSON.stringify({...data,language}),signal:AbortSignal.timeout(action==='session'&&data.verificationCheck===true?65000:35000)});value=await res.json();}
- catch{throw Error('authUnavailable');}
- if(!res.ok){if(value.error==='signIn'||value.error==='verifyEmail'){user=null;expiresAt=0;forcedVerification=false;updateVerification();}throw Error(value.error||'authUnavailable');}
- if(Object.hasOwn(value,'user')){user=value.user;expiresAt=Date.now()+Math.max(60,(value.expiresIn??3600)-300)*1000;updateVerification();}
+ let value;try{value=await authRequest(action,data,language);}catch(error){if(error.message==='signIn'||error.message==='verifyEmail'){user=null;expiresAt=0;forcedVerification=false;updateVerification();}throw error;}
+ if(Object.prototype.hasOwnProperty.call(value,'user')){user=value.user;expiresAt=Date.now()+Math.max(60,(value.expiresIn??3600)-300)*1000;updateVerification();}
  return value;
 }
 function updateVerification(){const unverified=!!user&&(!user.emailVerified||forcedVerification);$('auth-verify').hidden=!unverified;$('auth-form').hidden=unverified;$('auth-reset').hidden=unverified;$('verification-email').textContent=user?.email??'';if(unverified)notice(forcedVerification&&user.emailVerified?'verificationNotSynced':'verifyEmail');refreshSendButton();}
@@ -45,7 +43,9 @@ export async function initAuth(onChange){
  // Credentials stay in Secure, HttpOnly cookies. Browsers contact only DrFrog;
  // Cloudflare performs the fixed Firebase REST operations.
  $('auth-form').onsubmit=e=>{e.preventDefault();task($('email-signin'),async()=>{forcedVerification=false;await account('sign-in',{email:$('auth-email').value.trim(),password:$('auth-password').value});$('auth-password').value='';if(user.emailVerified)$('auth-dialog').close();await changed();});};
- $('email-signup').onclick=()=>{if(!$('auth-form').reportValidity())return;task($('email-signup'),async()=>{forcedVerification=false;await account('sign-up',{email:$('auth-email').value.trim(),password:$('auth-password').value});$('auth-password').value='';await changed();await sendVerification();});};
+ // An unverified account needs only the email flow. Refresh community data
+ // after verification, so a slow /me request cannot block sending the email.
+ $('email-signup').onclick=()=>{if(!$('auth-form').reportValidity())return;task($('email-signup'),async()=>{forcedVerification=false;await account('sign-up',{email:$('auth-email').value.trim(),password:$('auth-password').value});$('auth-password').value='';if(user.emailVerified){$('auth-dialog').close();await changed();return;}await registrationVerification(sendVerification);});};
  $('auth-reset').onclick=()=>{const email=$('auth-email');if(!email.value||!email.reportValidity())return;task($('auth-reset'),async()=>{await account('send-reset',{email:email.value.trim()});notice('resetSent');});};
  $('resend-verification').onclick=()=>task($('resend-verification'),sendVerification);
  $('check-verification').onclick=()=>task($('check-verification'),checkVerification);
@@ -72,5 +72,5 @@ export async function initAuth(onChange){
  const checkOnReturn=()=>{if(document.visibilityState!=='visible'||busy||!user||user.emailVerified&&!forcedVerification||Date.now()-lastVerificationCheck<10000)return;task($('check-verification'),checkVerification);};
  window.addEventListener('focus',checkOnReturn);document.addEventListener('visibilitychange',checkOnReturn);setInterval(()=>{if(!busy&&!$('auth-verify').hidden)refreshSendButton();},1000);
 }
-export function refreshAuthLabels(){if(provider!=='firebase')return;document.querySelectorAll('.sign-in').forEach(link=>{link.textContent=t('emailSignin');link.href='#signin';link.removeAttribute('target');});$('sign-out').href='#signout';$('sign-out').removeAttribute('target');const welcome=document.querySelector('[data-i18n="welcomeText"]');if(welcome)welcome.textContent=t('emailWelcome');if($('auth-notice').dataset.key)$('auth-notice').textContent=t($('auth-notice').dataset.key);refreshSendButton();}
+export function refreshAuthLabels(){if(provider!=='firebase')return;document.querySelectorAll('.sign-in').forEach(link=>{link.textContent=t('emailSignin');link.href='#signin';link.removeAttribute('target');});$('sign-out').href='#signout';$('sign-out').removeAttribute('target');const welcome=document.querySelector('[data-i18n="welcomeText"]');if(welcome)welcome.textContent=t('emailWelcome');if($('auth-notice').dataset.key)notice($('auth-notice').dataset.key,$('auth-notice').dataset.reference);refreshSendButton();}
 export function openAuth(needsVerification=false){if(provider!=='firebase')return;if(needsVerification)forcedVerification=true;updateVerification();if(!user)notice('emailAuthIntro');if(!$('auth-dialog').open)$('auth-dialog').showModal();}

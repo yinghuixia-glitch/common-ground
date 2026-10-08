@@ -1,11 +1,11 @@
 /* A small static cursor; touch and coarse-pointer devices keep native behavior. */
 @media (hover: hover) and (pointer: fine) {
   html {
-    cursor: url("assets/frog-cursor.svg?v=56705894646a") 16 16, auto;
+    cursor: url("assets/frog-cursor.svg?v=4eda247d0747") 16 16, auto;
   }
 
   body :is(button, a, summary, [role="button"], input[type="checkbox"], input[type="radio"], select) {
-    cursor: url("assets/frog-cursor.svg?v=56705894646a") 16 16, pointer;
+    cursor: url("assets/frog-cursor.svg?v=4eda247d0747") 16 16, pointer;
   }
 
   body :is(input:not([type="checkbox"]):not([type="radio"]), textarea, [contenteditable="true"], p, blockquote, .message, .takeaway-body) {

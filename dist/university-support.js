@@ -1,5 +1,5 @@
-import {language,t} from './i18n.js?v=56705894646a';
-import {universitySupportCopy} from './university-support-copy.js?v=56705894646a';
+import {language,t} from './i18n.js?v=4eda247d0747';
+import {universitySupportCopy} from './university-support-copy.js?v=4eda247d0747';
 const $=id=>document.getElementById(id);
 const tr=key=>universitySupportCopy[key]?.[language==='zh'?1:0]??t(key);
 const make=(tag,cls,value)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(value!==undefined)e.textContent=value;return e;};

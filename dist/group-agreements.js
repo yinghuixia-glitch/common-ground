@@ -1,5 +1,5 @@
-import {language,t} from './i18n.js?v=56705894646a';
-import {validTimeZone,zonedDateTime,zonedDateTimeToUtc,agreementText,agreementCalendar,agreementPrintHTML} from './group-agreements-export.js?v=56705894646a';
+import {language,t} from './i18n.js?v=4eda247d0747';
+import {validTimeZone,zonedDateTime,zonedDateTimeToUtc,agreementText,agreementCalendar,agreementPrintHTML} from './group-agreements-export.js?v=4eda247d0747';
 const $=id=>document.getElementById(id),make=(tag,cls,text)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(text!==undefined)node.textContent=text;return node;};
 const fields=['title','roles','meetingAgenda','communication','responseTime','clarification','breaks'];
 const limits={title:120,roles:1000,meetingAgenda:1000,communication:600,responseTime:300,clarification:600,breaks:600};

@@ -1,4 +1,4 @@
-import {t as defaultTranslate} from './i18n.js?v=56705894646a';
+import {t as defaultTranslate} from './i18n.js?v=4eda247d0747';
 const $=id=>document.getElementById(id);
 
 export function initNotifications({state,api,t=defaultTranslate,toast}){
